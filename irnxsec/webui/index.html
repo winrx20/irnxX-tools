@@ -1,0 +1,3009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow">
+<title>IRNXSEC Pro — Operator Console</title>
+<style>
+/* ============================================================ tokens */
+:root{
+  --bg:#07090c;
+  --panel:#0b0e13;
+  --panel-2:#0d1117;
+  --panel-3:#10151c;
+  --line:#1a1f28;
+  --line-2:#242c37;
+  --txt:#d9e2ea;
+  --txt-2:#8b97a8;
+  --txt-3:#5b6675;
+  --accent:#00ffa3;
+  --accent-soft:rgba(0,255,163,.10);
+  --accent-line:rgba(0,255,163,.30);
+  --red:#ff3b6b;
+  --red-soft:rgba(255,59,107,.10);
+  --crit:#ff2d55;
+  --high:#ff6b3d;
+  --med:#ffc93c;
+  --low:#4db8ff;
+  --info:#8b97a8;
+  --mono:ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --r:12px;
+  --r-sm:8px;
+  --shadow:0 18px 40px -18px rgba(0,0,0,.85);
+  --sb:240px;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;padding:0;min-height:100%}
+body{
+  background-color:var(--bg);
+  color:var(--txt);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  background-image:
+    linear-gradient(rgba(0,255,163,.026) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,163,.026) 1px,transparent 1px),
+    radial-gradient(1100px 620px at 82% -12%,rgba(0,255,163,.055),transparent 62%),
+    radial-gradient(820px 460px at -6% 104%,rgba(255,59,107,.045),transparent 60%);
+  background-size:36px 36px,36px 36px,100% 100%,100% 100%;
+  background-attachment:fixed;
+}
+h1,h2,h3,h4{margin:0;font-weight:600;letter-spacing:-.01em}
+h1{font-family:var(--mono);font-size:17px;letter-spacing:.02em}
+h2{font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-2);font-weight:600}
+h3{font-size:14px}
+p{margin:0}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+::selection{background:rgba(0,255,163,.28);color:#03130d}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:#07090c}
+::-webkit-scrollbar-thumb{background:#1e2630;border-radius:8px;border:2px solid #07090c}
+::-webkit-scrollbar-thumb:hover{background:#2b3542}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.mono{font-family:var(--mono)}
+.muted{color:var(--txt-2)}
+.dim{color:var(--txt-3)}
+.tiny{font-size:11px}
+.nowrap{white-space:nowrap}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ============================================================ shell */
+.app{display:flex;min-height:100vh}
+
+/* ---- sidebar ---- */
+.sidebar{
+  position:fixed;inset:0 auto 0 0;width:var(--sb);
+  display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#0a0d12 0%,#080a0e 100%);
+  border-right:1px solid var(--line);
+  z-index:40;
+}
+.sidebar::after{
+  content:"";position:absolute;top:0;right:-1px;width:1px;height:100%;
+  background:linear-gradient(180deg,rgba(0,255,163,.45),rgba(0,255,163,.02) 42%,transparent);
+  opacity:.5;pointer-events:none;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:18px 16px 16px;border-bottom:1px solid var(--line)}
+.brand-mark{
+  width:32px;height:32px;flex:0 0 32px;border-radius:8px;
+  display:grid;place-items:center;
+  border:1px solid var(--accent-line);
+  background:radial-gradient(circle at 30% 20%,rgba(0,255,163,.22),rgba(0,255,163,.03));
+  box-shadow:0 0 16px -4px rgba(0,255,163,.55),inset 0 0 12px -6px rgba(0,255,163,.8);
+  color:var(--accent);font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.04em;
+}
+.brand-text{display:flex;align-items:center;gap:7px;min-width:0}
+.brand-name{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.12em;color:#eaf3f9}
+.badge-pro{
+  font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.16em;
+  color:var(--accent);border:1px solid var(--accent-line);border-radius:4px;
+  padding:2px 4px 1px;background:var(--accent-soft);
+  text-shadow:0 0 10px rgba(0,255,163,.6);
+}
+.nav{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.nav-label{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--txt-3);
+  padding:12px 10px 6px;text-transform:uppercase;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:8px 10px;border-radius:var(--r-sm);
+  color:var(--txt-2);font-size:13px;text-align:left;
+  border:1px solid transparent;position:relative;
+  transition:background .12s ease,color .12s ease,border-color .12s ease;
+}
+.nav-item svg{width:16px;height:16px;flex:0 0 16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.nav-item:hover{background:#10151c;color:#c8d4de}
+.nav-item.active{
+  background:linear-gradient(90deg,rgba(0,255,163,.13),rgba(0,255,163,.02));
+  color:#eafff7;border-color:rgba(0,255,163,.22);
+  box-shadow:inset 0 0 18px -12px rgba(0,255,163,.9);
+}
+.nav-item.active svg{stroke:var(--accent);opacity:1;filter:drop-shadow(0 0 4px rgba(0,255,163,.55))}
+.nav-item.active::before{
+  content:"";position:absolute;left:-10px;top:50%;transform:translateY(-50%);
+  width:2px;height:16px;border-radius:2px;background:var(--accent);
+  box-shadow:0 0 8px var(--accent);
+}
+.nav-kbd{
+  margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--txt-3);
+  border:1px solid var(--line-2);border-radius:4px;padding:1px 4px;line-height:1.3;
+}
+.sb-foot{border-top:1px solid var(--line);padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+.sb-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--txt-3);font-family:var(--mono)}
+.sb-ver{color:var(--txt-2)}
+.sb-link{color:var(--txt-3);font-family:var(--mono);font-size:10.5px}
+.sb-link:hover{color:var(--accent);text-decoration:none}
+
+/* ---- main ---- */
+.main{flex:1;min-width:0;margin-left:var(--sb);display:flex;flex-direction:column}
+.topbar{
+  position:sticky;top:0;z-index:30;
+  height:60px;display:flex;align-items:center;gap:14px;
+  padding:0 22px;
+  background:rgba(7,9,12,.82);
+  backdrop-filter:blur(14px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+.topbar::after{
+  content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,163,.35),transparent);
+  opacity:.55;
+}
+.tb-title{display:flex;flex-direction:column;gap:1px;min-width:0}
+.tb-sub{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-3)}
+.tb-spacer{flex:1}
+.chip-env{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);
+  border:1px solid var(--accent-line);border-radius:999px;padding:4px 9px;
+  box-shadow:0 0 14px -6px rgba(0,255,163,.8);white-space:nowrap;
+}
+.chip-env .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.tb-stat{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;color:var(--txt-2);letter-spacing:.06em;white-space:nowrap}
+.tb-clock{font-family:var(--mono);font-size:11.5px;color:var(--txt-2);letter-spacing:.05em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.state-dot{width:7px;height:7px;border-radius:50%;background:var(--txt-3);transition:background .2s,box-shadow .2s}
+.state-dot.ok{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.state-dot.bad{background:var(--red);box-shadow:0 0 8px var(--red)}
+.state-dot.warn{background:var(--med);box-shadow:0 0 8px var(--med)}
+
+.view{padding:22px;max-width:1380px;width:100%;margin:0 auto;flex:1}
+
+/* ============================================================ primitives */
+.panel{
+  background:linear-gradient(180deg,var(--panel) 0%,#090c11 100%);
+  border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);position:relative;min-width:0;
+}
+.panel-head{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:14px 16px;border-bottom:1px solid var(--line);
+}
+.panel-head h2{display:flex;align-items:center;gap:8px}
+.panel-head .spacer{flex:1}
+.panel-body{padding:16px}
+.panel-foot{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.panel + .panel{margin-top:16px}
+
+.grid{display:grid;gap:16px}
+.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:1120px){.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}}
+
+/* stat card */
+.stat{
+  padding:16px;border-radius:var(--r);
+  background:linear-gradient(160deg,#0c1016 0%,#080b0f 100%);
+  border:1px solid var(--line);position:relative;overflow:hidden;
+}
+.stat::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,163,.35),transparent);
+  opacity:.5;
+}
+.stat-label{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--txt-3);display:flex;align-items:center;gap:6px}
+.stat-val{font-family:var(--mono);font-size:30px;line-height:1.15;font-weight:600;color:#eef7fb;margin-top:8px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat-val small{font-size:12px;color:var(--txt-3);font-weight:400;margin-left:4px;letter-spacing:0}
+.stat-foot{font-size:11px;color:var(--txt-2);margin-top:6px;display:flex;align-items:center;gap:6px}
+.stat.crit .stat-val{color:#ffd6de;text-shadow:0 0 18px rgba(255,45,85,.5)}
+.stat.accent .stat-val{color:#d8fff2;text-shadow:0 0 18px rgba(0,255,163,.35)}
+
+/* buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:8px 13px;border-radius:var(--r-sm);
+  border:1px solid var(--line-2);background:#11161d;color:#cfdae4;
+  font-size:12.5px;font-weight:500;white-space:nowrap;
+  transition:background .12s,border-color .12s,color .12s,box-shadow .12s,transform .06s;
+}
+.btn:hover{background:#161d26;border-color:#33404f;color:#e6f0f7}
+.btn:active{transform:translateY(1px)}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.btn-primary{
+  background:linear-gradient(180deg,rgba(0,255,163,.96),rgba(0,226,144,.9));
+  color:#04140d;border-color:rgba(0,255,163,.8);font-weight:700;
+  box-shadow:0 0 22px -8px rgba(0,255,163,.9);
+}
+.btn-primary:hover{background:linear-gradient(180deg,#5cffc4,#00ffa3);color:#02120b;border-color:#8affd0;box-shadow:0 0 26px -6px rgba(0,255,163,1)}
+.btn-primary svg{stroke:#04140d;stroke-width:2}
+.btn-danger{color:#ffc4d0;border-color:rgba(255,59,107,.4);background:rgba(255,59,107,.08)}
+.btn-danger:hover{background:rgba(255,59,107,.16);border-color:rgba(255,59,107,.65);color:#ffe1e8}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--txt-2)}
+.btn-ghost:hover{background:#11161d;color:#dbe6ef;border-color:var(--line)}
+.btn-sm{padding:5px 9px;font-size:11.5px;border-radius:6px}
+.btn-sm svg{width:12px;height:12px}
+.btn[disabled]{opacity:.42;cursor:not-allowed;box-shadow:none;transform:none}
+.btn-icon{padding:7px;width:31px;height:31px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field > label,.lbl{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--txt-2);
+}
+.hint{font-size:11.5px;color:var(--txt-3);line-height:1.45}
+.input,.select,.textarea{
+  width:100%;padding:9px 11px;border-radius:var(--r-sm);
+  background:#0a0e13;border:1px solid var(--line-2);color:#dde7ef;
+  font-size:13px;font-family:var(--mono);
+  transition:border-color .12s,box-shadow .12s,background .12s;
+}
+.textarea{min-height:96px;resize:vertical;line-height:1.6}
+.input::placeholder,.textarea::placeholder{color:#48525f}
+.input:focus,.select:focus,.textarea:focus{
+  outline:none;border-color:var(--accent-line);background:#0b1016;
+  box-shadow:0 0 0 3px rgba(0,255,163,.10),0 0 18px -10px rgba(0,255,163,.8);
+}
+.select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,#6b7887 50%),linear-gradient(135deg,#6b7887 50%,transparent 50%);background-position:calc(100% - 16px) 51%,calc(100% - 11px) 51%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:32px;cursor:pointer}
+.field-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:700px){.field-row{grid-template-columns:1fr}}
+.form-grid{display:grid;gap:14px}
+
+/* segmented control */
+.seg{display:inline-flex;padding:3px;gap:3px;background:#080c11;border:1px solid var(--line-2);border-radius:10px;width:100%}
+.seg button{
+  flex:1;padding:8px 10px;border-radius:7px;font-family:var(--mono);font-size:11.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--txt-2);
+  border:1px solid transparent;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.seg button:hover{color:#d5e0e9;background:#0e141b}
+.seg button[aria-pressed="true"]{
+  background:linear-gradient(180deg,rgba(0,255,163,.17),rgba(0,255,163,.06));
+  color:#eafff7;border-color:rgba(0,255,163,.38);
+  box-shadow:0 0 16px -8px rgba(0,255,163,.9),inset 0 0 12px -8px rgba(0,255,163,.9);
+}
+.seg button[aria-pressed="true"] svg{stroke:var(--accent)}
+
+/* profile cards */
+.profiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:820px){.profiles{grid-template-columns:1fr}}
+.prof{
+  text-align:left;padding:12px;border-radius:10px;border:1px solid var(--line-2);
+  background:#090d12;display:flex;flex-direction:column;gap:4px;transition:all .12s;
+}
+.prof:hover{border-color:#33404f;background:#0c1118}
+.prof[aria-pressed="true"]{
+  border-color:rgba(0,255,163,.45);background:linear-gradient(180deg,rgba(0,255,163,.10),rgba(0,255,163,.02));
+  box-shadow:0 0 22px -14px rgba(0,255,163,.9),inset 0 0 20px -18px rgba(0,255,163,1);
+}
+.prof-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.prof-name{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#e2ecf3}
+.prof[aria-pressed="true"] .prof-name{color:var(--accent)}
+.prof-desc{font-size:11.5px;color:var(--txt-3);line-height:1.45}
+.prof-meta{font-family:var(--mono);font-size:10px;color:var(--txt-3);letter-spacing:.04em;margin-top:2px}
+
+/* checkbox */
+.check{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border:1px solid var(--line-2);border-radius:10px;background:#090d12;cursor:pointer;transition:border-color .12s,background .12s}
+.check:hover{border-color:#33404f}
+.check input{appearance:none;flex:0 0 16px;width:16px;height:16px;margin:1px 0 0;border:1px solid #3a4654;border-radius:4px;background:#06090d;display:grid;place-items:center;cursor:pointer;transition:all .12s}
+.check input:checked{background:var(--accent);border-color:var(--accent);box-shadow:0 0 14px -4px rgba(0,255,163,.9)}
+.check input:checked::after{content:"";width:8px;height:4px;border-left:2px solid #04140d;border-bottom:2px solid #04140d;transform:rotate(-45deg) translateY(-1px)}
+.check input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.check span{font-size:12.5px;color:var(--txt);line-height:1.45}
+
+/* switch toggle */
+.switch{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:11px 12px;border:1px solid var(--line-2);border-radius:10px;background:#090d12}
+.switch:hover{border-color:#2c3743}
+.switch-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.switch-txt b{font-size:12.5px;font-weight:500;color:var(--txt)}
+.switch-txt small{font-size:11px;color:var(--txt-3);line-height:1.4}
+.tgl{position:relative;flex:0 0 38px;width:38px;height:21px;border-radius:999px;background:#1b232d;border:1px solid #2c3743;transition:all .16s}
+.tgl::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#7c8896;transition:all .16s}
+.tgl[aria-checked="true"]{background:rgba(0,255,163,.22);border-color:rgba(0,255,163,.6);box-shadow:0 0 16px -6px rgba(0,255,163,.9)}
+.tgl[aria-checked="true"]::after{left:19px;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.switch.danger-mode{border-color:rgba(255,59,107,.45);background:rgba(255,59,107,.07)}
+.switch.danger-mode .switch-txt b{color:#ffc9d4}
+
+/* alerts */
+.alert{
+  display:flex;gap:11px;padding:12px 14px;border-radius:10px;font-size:12.5px;line-height:1.55;
+  border:1px solid var(--line-2);background:#0a0e13;color:var(--txt-2);
+}
+.alert svg{width:16px;height:16px;flex:0 0 16px;margin-top:2px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.alert b{color:var(--txt);font-weight:600}
+.alert-warn{border-color:rgba(255,201,60,.32);background:rgba(255,201,60,.07);color:#e8d49a}
+.alert-warn svg{stroke:var(--med)}
+.alert-warn b{color:#ffe9b0}
+.alert-danger{border-color:rgba(255,59,107,.42);background:rgba(255,59,107,.08);color:#ffc3d0}
+.alert-danger svg{stroke:var(--red)}
+.alert-danger b{color:#ffdde5}
+.alert-accent{border-color:var(--accent-line);background:var(--accent-soft);color:#a9f5d6}
+.alert-accent svg{stroke:var(--accent)}
+.alert-accent b{color:#d6fff0}
+.alert-mono{font-family:var(--mono);font-size:12px;white-space:pre-wrap;word-break:break-word}
+
+/* chips */
+.chip{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:2.5px 7px;border-radius:5px;border:1px solid var(--line-2);
+  background:#0f141a;color:var(--txt-2);white-space:nowrap;line-height:1.5;
+}
+.chip-crit{color:#ffb3c1;border-color:rgba(255,45,85,.45);background:rgba(255,45,85,.12)}
+.chip-high{color:#ffc0a8;border-color:rgba(255,107,61,.45);background:rgba(255,107,61,.12)}
+.chip-med{color:#ffe1a3;border-color:rgba(255,201,60,.42);background:rgba(255,201,60,.11)}
+.chip-low{color:#b3dcff;border-color:rgba(77,184,255,.42);background:rgba(77,184,255,.11)}
+.chip-info{color:#c2ccd8;border-color:rgba(139,151,168,.42);background:rgba(139,151,168,.12)}
+.chip-ok{color:#a6ffdc;border-color:rgba(0,255,163,.42);background:rgba(0,255,163,.11)}
+.chip-bad{color:#ffb3c1;border-color:rgba(255,59,107,.45);background:rgba(255,59,107,.12)}
+.chip-warn{color:#ffe1a3;border-color:rgba(255,201,60,.42);background:rgba(255,201,60,.11)}
+.chip-accent{color:#9dffdb;border-color:rgba(0,255,163,.4);background:rgba(0,255,163,.1)}
+.chip-plain{color:var(--txt-2);border-color:var(--line-2);background:#0c1116}
+.chip-target{text-transform:none;letter-spacing:0;font-size:10.5px;color:#c9d5e0;background:#0d1218;border-color:#232b35}
+.chip-tiny{font-size:9px;padding:1.5px 5px}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor}
+
+/* tables */
+.table-wrap{width:100%;overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:100%}
+table.tbl th{
+  text-align:left;font-family:var(--mono);font-weight:500;font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--txt-3);
+  padding:9px 12px;border-bottom:1px solid var(--line);background:#080b10;
+  position:sticky;top:0;z-index:1;white-space:nowrap;
+}
+table.tbl th.sortable{cursor:pointer;user-select:none}
+table.tbl th.sortable:hover{color:var(--txt-2)}
+table.tbl th .caret{color:var(--accent);margin-left:3px}
+table.tbl td{padding:10px 12px;border-bottom:1px solid #12171e;vertical-align:middle;color:#c6d2dd}
+table.tbl tbody tr{transition:background .1s}
+table.tbl tbody tr:hover{background:#0d1219}
+table.tbl tbody tr:last-child td{border-bottom:0}
+table.tbl tr.clickable{cursor:pointer}
+table.tbl td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+table.tbl td.mono-cell{font-family:var(--mono);font-size:11.5px}
+.tbl-empty{padding:34px 16px;text-align:center;color:var(--txt-3);font-size:12.5px}
+.tbl-empty .big{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--txt-2);display:block;margin-bottom:6px}
+
+/* severity bar chart */
+.chart{display:flex;align-items:flex-end;gap:10px;height:150px;padding:6px 2px 0}
+.chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;min-width:0}
+.chart-track{flex:1;width:100%;display:flex;align-items:flex-end;border-radius:5px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));border:1px solid #12171e;position:relative;overflow:hidden}
+.chart-bar{width:100%;border-radius:4px 4px 0 0;min-height:2px;transition:height .45s cubic-bezier(.2,.8,.2,1);position:relative}
+.chart-bar::after{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:rgba(255,255,255,.55)}
+.chart-num{font-family:var(--mono);font-size:12px;color:#e5eef5;font-variant-numeric:tabular-nums}
+.chart-lab{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-3)}
+
+/* gauge */
+.gauge{width:190px;height:114px;display:block}
+.gauge-cap{font-family:var(--mono);font-size:9px;letter-spacing:.2em;fill:#7d8896}
+
+/* drawer */
+.drawer-row td{padding:0!important;border-bottom:1px solid #12171e!important;background:#080b10}
+.drawer{padding:16px 18px 18px;display:grid;gap:14px;border-left:2px solid rgba(0,255,163,.4)}
+.drawer h4{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--txt-3);margin-bottom:5px}
+.drawer .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.drawer .kv > div{min-width:0}
+.drawer .val{font-size:12.5px;color:#cfdae4;line-height:1.55;word-break:break-word}
+pre.code{
+  margin:0;padding:12px;border-radius:9px;border:1px solid var(--line);
+  background:#06090d;color:#b8c7d4;font-family:var(--mono);font-size:11.5px;line-height:1.6;
+  overflow:auto;max-height:320px;white-space:pre-wrap;word-break:break-word;
+}
+pre.code::-webkit-scrollbar{height:8px;width:8px}
+pre.pem{max-height:230px;color:#9fe9cd}
+.linklist{display:flex;flex-direction:column;gap:4px}
+.linklist a{font-family:var(--mono);font-size:11px;word-break:break-all}
+
+/* scope / cert cards */
+.cert-card{padding:15px 16px;border:1px solid var(--line);border-radius:var(--r);background:linear-gradient(160deg,#0c1016,#080b10);display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.cert-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--accent),transparent)}
+.cert-id{font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;color:#e8f4fa}
+.cert-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.cert-kv div{min-width:0}
+.cert-kv .k{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--txt-3)}
+.cert-kv .v{font-family:var(--mono);font-size:11.5px;color:#c8d4de;word-break:break-word}
+
+/* toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.search{position:relative;flex:1;min-width:150px}
+.search .input{padding-left:31px}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--txt-3);fill:none;stroke-width:1.8}
+
+/* pagination */
+.pager{display:flex;align-items:center;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--line);flex-wrap:wrap}
+.pager .pg-info{font-family:var(--mono);font-size:11px;color:var(--txt-3);margin-right:auto}
+
+/* section header */
+.sec-head{display:flex;align-items:center;gap:10px;margin:22px 0 12px}
+.sec-head h2{white-space:nowrap}
+.sec-head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+/* progress */
+.progress-shell{padding:20px;display:flex;flex-direction:column;gap:14px}
+.prog-top{display:flex;align-items:center;gap:12px}
+.prog-title{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-2)}
+.prog-meta{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--txt-3);font-variant-numeric:tabular-nums}
+.prog-track{height:4px;border-radius:99px;background:#12171e;overflow:hidden;position:relative}
+.prog-fill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#00e08f,var(--accent));box-shadow:0 0 12px rgba(0,255,163,.8);transition:width .5s ease}
+.prog-fill.indet{width:35%!important;animation:slide 1.35s ease-in-out infinite}
+@keyframes slide{0%{margin-left:-35%}100%{margin-left:100%}}
+.spinner{width:15px;height:15px;border:2px solid rgba(0,255,163,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex:0 0 15px}
+.spinner.lg{width:22px;height:22px;border-width:2.5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.log{font-family:var(--mono);font-size:11.5px;color:var(--txt-2);display:flex;flex-direction:column;gap:5px;max-height:160px;overflow:auto}
+.log-line{display:flex;gap:8px}
+.log-line .t{color:var(--txt-3);flex:0 0 auto}
+
+/* skeleton */
+.sk{background:linear-gradient(90deg,#0e131a 25%,#151c25 37%,#0e131a 63%);background-size:400% 100%;animation:sk 1.3s ease infinite;border-radius:6px}
+@keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.sk-line{height:11px;margin-bottom:9px}
+.sk-card{height:88px;border-radius:var(--r);margin-bottom:16px}
+.sk-row{height:34px;margin-bottom:6px}
+
+/* empty state */
+.empty{padding:40px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.empty svg{width:30px;height:30px;stroke:var(--txt-3);fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+.empty .t{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-2)}
+.empty .d{font-size:12px;color:var(--txt-3);max-width:400px}
+.empty .btn{margin-top:4px}
+
+/* toasts */
+.toasts{position:fixed;right:18px;bottom:18px;z-index:120;display:flex;flex-direction:column;gap:9px;max-width:min(390px,calc(100vw - 36px));pointer-events:none}
+.toast{
+  pointer-events:auto;display:flex;gap:10px;align-items:flex-start;
+  padding:11px 13px;border-radius:10px;font-size:12.5px;line-height:1.45;
+  background:#0c1116;border:1px solid var(--line-2);color:#d5e0e9;
+  box-shadow:0 16px 34px -14px rgba(0,0,0,.95);
+  animation:toastIn .18s ease-out;position:relative;overflow:hidden;
+}
+.toast::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent)}
+.toast.error::before{background:var(--red)}
+.toast.warn::before{background:var(--med)}
+.toast.ok::before{background:var(--accent)}
+.toast.out{animation:toastOut .16s ease-in forwards}
+.toast .msg{flex:1;min-width:0;word-break:break-word}
+.toast .x{color:var(--txt-3);font-size:14px;line-height:1;padding:0 2px;flex:0 0 auto}
+.toast .x:hover{color:var(--txt)}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateX(12px)}}
+
+/* modal */
+.overlay{
+  position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:rgba(3,5,8,.76);backdrop-filter:blur(6px);
+  animation:fadeIn .14s ease-out;overflow-y:auto;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  width:100%;max-width:560px;background:linear-gradient(180deg,#0c1016,#080b10);
+  border:1px solid #262f3a;border-radius:14px;
+  box-shadow:0 30px 70px -20px rgba(0,0,0,1),0 0 0 1px rgba(0,255,163,.06);
+  animation:modalIn .16s ease-out;max-height:calc(100vh - 40px);display:flex;flex-direction:column;
+}
+.modal.wide{max-width:660px}
+@keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+.modal-head{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line)}
+.modal-head h3{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#dceaf2}
+.modal-head .x{margin-left:auto;color:var(--txt-3);font-size:17px;line-height:1}
+.modal-head .x:hover{color:var(--txt)}
+.modal-body{padding:16px 18px;overflow-y:auto}
+.modal-foot{padding:13px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.modal-foot .left{margin-right:auto}
+.confirm-txt{font-size:13px;color:var(--txt-2);line-height:1.6}
+.confirm-txt b{color:#ffd5de}
+
+/* auth banner */
+.auth-banner{
+  position:sticky;top:60px;z-index:29;
+  display:flex;align-items:center;gap:11px;
+  padding:11px 22px;font-family:var(--mono);font-size:12px;letter-spacing:.02em;
+  background:rgba(255,59,107,.14);border-bottom:1px solid rgba(255,59,107,.45);
+  color:#ffd2dc;
+}
+.auth-banner svg{width:15px;height:15px;flex:0 0 15px;stroke:var(--red);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.auth-banner[hidden]{display:none}
+
+/* misc */
+.kv-inline{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.kv-inline > span{font-family:var(--mono);font-size:11px;color:var(--txt-3);display:inline-flex;gap:5px;align-items:center}
+.kv-inline b{color:var(--txt-2);font-weight:500}
+.divider{height:1px;background:var(--line);margin:14px 0}
+.two-col{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1000px){.two-col{grid-template-columns:1fr}}
+.copy-btn{opacity:.75}
+.copy-btn:hover{opacity:1}
+.mono-ellipsis{font-family:var(--mono);font-size:11.5px;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom}
+.risk-bar{width:64px;height:4px;border-radius:99px;background:#151b23;overflow:hidden;display:inline-block;vertical-align:middle}
+.risk-bar i{display:block;height:100%;border-radius:99px}
+.tooltip{position:relative;cursor:help;border-bottom:1px dotted #3d4956}
+
+/* ---- responsive: sidebar collapses to top bar ---- */
+@media (max-width:900px){
+  .sidebar{
+    inset:0 0 auto 0;width:100%;height:52px;flex-direction:row;align-items:center;
+    border-right:0;border-bottom:1px solid var(--line);padding-right:8px;
+  }
+  .sidebar::after{display:none}
+  .brand{padding:0 12px;border-bottom:0;border-right:1px solid var(--line);height:100%;flex:0 0 auto}
+  .brand-mark{width:26px;height:26px;flex-basis:26px;font-size:10px}
+  .brand-name{font-size:12.5px;letter-spacing:.1em}
+  .nav{flex-direction:row;overflow-x:auto;overflow-y:hidden;padding:6px;gap:4px;align-items:center}
+  .nav-label{display:none}
+  .nav-item{width:auto;padding:9px;flex:0 0 auto}
+  .nav-item .lbl-txt{display:none}
+  .nav-item::before{display:none}
+  .nav-kbd{display:none}
+  .nav-item.active{background:rgba(0,255,163,.14);border-color:rgba(0,255,163,.32)}
+  .sb-foot{display:none}
+  .main{margin-left:0;padding-top:52px}
+  .topbar{height:52px;padding:0 14px;top:52px;gap:10px}
+  .topbar::after{display:none}
+  .auth-banner{top:104px;padding:10px 14px}
+  .view{padding:14px}
+  .tb-clock{display:none}
+}
+@media (max-width:620px){
+  .chip-env{padding:3px 7px;font-size:9px}
+  .tb-stat{display:none}
+  h1{font-size:15px}
+  .stat-val{font-size:25px}
+  .panel-head{padding:12px}
+  .panel-body{padding:12px}
+  .modal-foot{justify-content:stretch}
+  .modal-foot .btn{flex:1}
+  .toasts{left:12px;right:12px;bottom:12px;max-width:none}
+}
+@media (max-width:420px){
+  .brand-text .badge-pro{display:none}
+  .view{padding:10px}
+  .btn{padding:7px 10px;font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" aria-label="Primary">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">IX</div>
+      <div class="brand-text">
+        <span class="brand-name">IRNXSEC</span>
+        <span class="badge-pro">PRO</span>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-label">Operations</div>
+      <a class="nav-item" href="#/dashboard" data-route="dashboard">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13a9 9 0 0 1 18 0"/><path d="M12 13l4-3.5"/><circle cx="12" cy="13" r="1.6"/></svg>
+        <span class="lbl-txt">Dashboard</span>
+      </a>
+      <a class="nav-item" href="#/new" data-route="new">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>
+        <span class="lbl-txt">New Scan</span>
+        <span class="nav-kbd">N</span>
+      </a>
+      <a class="nav-item" href="#/history" data-route="history">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4.5v4h4"/><path d="M12 8v4.4l3 1.8"/></svg>
+        <span class="lbl-txt">History</span>
+      </a>
+      <div class="nav-label">Authorization</div>
+      <a class="nav-item" href="#/scopes" data-route="scopes">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.3-2.9 7.6-7 9.5-4.1-1.9-7-5.2-7-9.5V6z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg>
+        <span class="lbl-txt">Scopes</span>
+      </a>
+      <a class="nav-item" href="#/certificates" data-route="certificates">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="12" rx="1.5"/><path d="M7 9h6M7 12h4"/><path d="M15.4 18.2l1-1 2.6 2.6-1 1z"/></svg>
+        <span class="lbl-txt">Certificates</span>
+      </a>
+      <a class="nav-item" href="#/audit" data-route="audit">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 5.5h9l3 3v10h-12z"/><path d="M8 11h6M8 14.5h4"/></svg>
+        <span class="lbl-txt">Audit</span>
+      </a>
+      <div class="nav-label">System</div>
+      <a class="nav-item" href="#/payloads" data-route="payloads">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h13"/><circle cx="19" cy="16.5" r="2.2"/></svg>
+        <span class="lbl-txt">Canaries</span>
+      </a>
+      <a class="nav-item" href="#/settings" data-route="settings">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M4.8 7.8l1.9 1.1M17.3 15.1l1.9 1.1M4.8 16.2l1.9-1.1M17.3 8.9l1.9-1.1"/></svg>
+        <span class="lbl-txt">Settings</span>
+      </a>
+    </nav>
+    <div class="sb-foot">
+      <div class="sb-row"><span>BUILD</span><span class="sb-ver mono">v__IRNX_VERSION__</span></div>
+      <div class="sb-row"><span>BIND</span><span class="mono" id="sbBind">127.0.0.1</span></div>
+      <a class="sb-link" href="#/settings">Localhost only · tidak untuk publik</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="tb-title">
+        <h1 id="pageTitle">Dashboard</h1>
+        <span class="tb-sub" id="pageSub">Ringkasan operasi</span>
+      </div>
+      <div class="tb-spacer"></div>
+      <span class="tb-stat" title="API token state"><span class="state-dot" id="tokenDot"></span><span id="tokenState">token</span></span>
+      <span class="chip-env"><span class="dot"></span>LOCALHOST ONLY</span>
+      <span class="tb-clock" id="clock">--:--:--</span>
+    </header>
+
+    <div class="auth-banner" id="authBanner" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l8 14H4z"/><path d="M12 9.5v4M12 16.2v.1"/></svg>
+      <span>API token rejected — restart the server and reload</span>
+    </div>
+
+    <main class="view" id="view" tabindex="-1"></main>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
+<div id="modalRoot"></div>
+<script>
+'use strict';
+
+/* ============================================================================
+   IRNXSEC Pro — operator console (single file, no build step, offline)
+   Auth token is injected by the local server at render time.
+   ========================================================================== */
+
+window.IRNX_TOKEN = "__IRNX_TOKEN__";
+
+const TOKEN = window.IRNX_TOKEN || '';
+
+const SEV_KEYS = ['critical', 'high', 'medium', 'low', 'info'];
+const SEV_COLOR = { critical: '#ff2d55', high: '#ff6b3d', medium: '#ffc93c', low: '#4db8ff', info: '#8b97a8' };
+const SEV_CLASS = { critical: 'chip-crit', high: 'chip-high', medium: 'chip-med', low: 'chip-low', info: 'chip-info' };
+const KIND_LABEL = { web: 'Web', network: 'Network', dns: 'DNS', all: 'All kinds' };
+const KIND_ICON = {
+  web: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.4 3.6 5.3 3.6 8.5s-1.2 6.1-3.6 8.5c-2.4-2.4-3.6-5.3-3.6-8.5S9.6 5.9 12 3.5z"/></svg>',
+  network: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="6" height="5" rx="1"/><rect x="14.5" y="4" width="6" height="5" rx="1"/><rect x="9" y="15" width="6" height="5" rx="1"/><path d="M6.5 9v3h11V9M12 12v3"/></svg>',
+  dns: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17"/></svg>'
+};
+const AUTHZ_LABEL = {
+  'owner': 'Owner / self-owned',
+  'written-permission': 'Written permission',
+  'contract': 'Signed contract',
+  'bug-bounty-program': 'Bug bounty program'
+};
+
+/* ------------------------------------------------------------------ helpers */
+const ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
+function esc(value) {
+  if (value === null || value === undefined) return '';
+  return String(value).replace(/[&<>"']/g, (c) => ESC_MAP[c]);
+}
+
+function el(id) { return document.getElementById(id); }
+
+function num(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : (fallback === undefined ? 0 : fallback);
+}
+
+function round(value, digits) {
+  const p = Math.pow(10, digits || 1);
+  return Math.round(num(value) * p) / p;
+}
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function parseTs(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function fmtDate(iso) {
+  const d = parseTs(iso);
+  if (!d) return '—';
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) +
+    ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+}
+
+function fmtDay(iso) {
+  const d = parseTs(iso);
+  if (!d) return '—';
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+}
+
+function relTime(iso) {
+  const d = parseTs(iso);
+  if (!d) return '—';
+  const secs = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (secs < 45) return 'just now';
+  if (secs < 3600) return Math.floor(secs / 60) + 'm ago';
+  if (secs < 86400) return Math.floor(secs / 3600) + 'h ago';
+  if (secs < 2592000) return Math.floor(secs / 86400) + 'd ago';
+  return fmtDay(iso);
+}
+
+function dur(seconds) {
+  const s = Math.max(0, Math.floor(seconds));
+  if (s < 60) return s + 's';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + 'm ' + pad2(s % 60) + 's';
+  return Math.floor(m / 60) + 'h ' + pad2(m % 60) + 'm';
+}
+
+/* Days remaining until an ISO date. Returns null when there is no expiry. */
+function daysLeft(iso) {
+  const d = parseTs(iso);
+  if (!d) return null;
+  return Math.ceil((d.getTime() - Date.now()) / 86400000);
+}
+
+function countdownText(iso) {
+  const d = daysLeft(iso);
+  if (d === null) return 'no expiry';
+  if (d < 0) return 'expired ' + Math.abs(d) + 'd ago';
+  if (d === 0) return 'expires today';
+  return d + 'd left';
+}
+
+/* Accept only absolute http(s) URLs from server data before building a link. */
+function safeUrl(raw) {
+  const s = String(raw === null || raw === undefined ? '' : raw).trim();
+  if (!s) return '';
+  return /^https?:/i.test(s) ? s : '';
+}
+
+function severityChip(sev) {
+  const key = String(sev || 'info').toLowerCase();
+  const cls = SEV_CLASS[key] || 'chip-info';
+  return '<span class="chip ' + cls + '">' + esc(key) + '</span>';
+}
+
+function statusChip(status) {
+  const key = String(status || '').toLowerCase();
+  const map = {
+    complete: ['chip-ok', 'complete'],
+    running: ['chip-accent', 'running'],
+    queued: ['chip-warn', 'queued'],
+    failed: ['chip-bad', 'failed'],
+    active: ['chip-ok', 'active'],
+    revoked: ['chip-bad', 'revoked'],
+    expired: ['chip-warn', 'expired']
+  };
+  const entry = map[key] || ['chip-plain', key || 'unknown'];
+  const dot = (key === 'running' || key === 'queued') ? '<span class="pill-dot"></span>' : '';
+  return '<span class="chip ' + entry[0] + '">' + dot + esc(entry[1]) + '</span>';
+}
+
+function scopeBadge(scope) {
+  const status = String(scope && scope.status || '').toLowerCase();
+  if (status === 'revoked') return '<span class="chip chip-bad">revoked</span>';
+  if (scope && scope.expired) return '<span class="chip chip-warn">expired</span>';
+  return '<span class="chip chip-ok">active</span>';
+}
+
+function riskColor(score) {
+  const v = num(score);
+  if (v >= 70) return SEV_COLOR.critical;
+  if (v >= 45) return SEV_COLOR.high;
+  if (v >= 20) return SEV_COLOR.medium;
+  return '#00ffa3';
+}
+
+function riskCell(score) {
+  const v = round(score, 1);
+  const color = riskColor(v);
+  return '<span class="mono" style="color:' + color + '">' + esc(v.toFixed(1)) + '</span>' +
+    '<span class="risk-bar" style="margin-left:8px"><i style="width:' + Math.min(100, v) + '%;background:' + color + '"></i></span>';
+}
+
+function kindChip(kind) {
+  const key = String(kind || '').toLowerCase();
+  return '<span class="chip chip-plain">' + (KIND_ICON[key] || '') + esc(KIND_LABEL[key] || key || '—') + '</span>';
+}
+
+function spinnerSvg(size) {
+  return '<span class="spinner' + (size === 'lg' ? ' lg' : '') + '" role="presentation"></span>';
+}
+
+function emptyState(title, desc, action) {
+  return '<div class="empty">' +
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h16M4 12h16M4 16.5h10"/><circle cx="18.5" cy="16.5" r="2.5"/></svg>' +
+    '<span class="t">' + esc(title) + '</span>' +
+    '<span class="d">' + esc(desc) + '</span>' +
+    (action || '') +
+    '</div>';
+}
+
+function skeletonCards(count) {
+  let out = '<div class="grid grid-4">';
+  for (let i = 0; i < (count || 4); i++) out += '<div class="sk sk-card" style="margin:0"></div>';
+  return out + '</div>';
+}
+
+function skeletonRows(count) {
+  let out = '';
+  for (let i = 0; i < (count || 5); i++) out += '<div class="sk sk-row"></div>';
+  return out;
+}
+
+/* --------------------------------------------------------------------- api */
+class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status || 0;
+  }
+}
+
+let authBannerShown = false;
+
+function showAuthBanner() {
+  if (authBannerShown) return;
+  authBannerShown = true;
+  const banner = el('authBanner');
+  if (banner) banner.hidden = false;
+}
+
+async function api(path, options) {
+  const opts = options || {};
+  const headers = { 'X-IRNX-Token': TOKEN };
+  let body;
+  if (opts.body !== undefined && opts.body !== null) {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(opts.body);
+  }
+  let res;
+  try {
+    res = await fetch(path, {
+      method: opts.method || 'GET',
+      headers: headers,
+      body: body,
+      cache: 'no-store',
+      credentials: 'same-origin'
+    });
+  } catch (err) {
+    const msg = 'Local API unreachable; is the server running?';
+    toast(msg, 'error');
+    throw new ApiError(msg, 0);
+  }
+
+  if (res.status === 401) {
+    const first = !authBannerShown;
+    showAuthBanner();
+    const msg = 'API token rejected — restart the server and reload';
+    if (first) toast(msg, 'error');
+    throw new ApiError(msg, 401);
+  }
+
+  if (!res.ok) {
+    let detail = '';
+    const ctype = res.headers.get('content-type') || '';
+    try {
+      if (ctype.indexOf('json') !== -1) {
+        const parsed = await res.json();
+        detail = parsed && (parsed.detail || parsed.message) ? String(parsed.detail || parsed.message) : '';
+      } else {
+        detail = (await res.text() || '').slice(0, 400);
+      }
+    } catch (err) { detail = ''; }
+    const msg = detail || ('Request failed with status ' + res.status);
+    toast(msg, 'error');
+    throw new ApiError(msg, res.status);
+  }
+
+  if (res.status === 204) return null;
+  const ctype = res.headers.get('content-type') || '';
+  if (ctype.indexOf('json') === -1) return res;
+  try {
+    return await res.json();
+  } catch (err) {
+    return null;
+  }
+}
+
+/* Download a server-rendered file with the auth header, then open it in a new tab. */
+async function openAuthedFile(url, filename, blankWindow) {
+  let res;
+  try {
+    res = await fetch(url, { headers: { 'X-IRNX-Token': TOKEN }, cache: 'no-store' });
+  } catch (err) {
+    if (blankWindow) { try { blankWindow.close(); } catch (e) {} }
+    toast('Local API unreachable; is the server running?', 'error');
+    return;
+  }
+  if (res.status === 401) {
+    if (blankWindow) { try { blankWindow.close(); } catch (e) {} }
+    showAuthBanner();
+    toast('API token rejected — restart the server and reload', 'error');
+    return;
+  }
+  if (!res.ok) {
+    if (blankWindow) { try { blankWindow.close(); } catch (e) {} }
+    let detail = '';
+    try {
+      const parsed = await res.json();
+      detail = parsed && parsed.detail ? String(parsed.detail) : '';
+    } catch (err) { detail = ''; }
+    toast(detail || ('Export failed with status ' + res.status), 'error');
+    return;
+  }
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  if (blankWindow) {
+    try {
+      blankWindow.location.href = objectUrl;
+    } catch (err) {
+      blankWindow.close();
+      toast('Popup blocked — allow popups for localhost to view the report', 'warn');
+    }
+  } else {
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = filename || 'irnxsec-report';
+    link.rel = 'noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+  setTimeout(function () { URL.revokeObjectURL(objectUrl); }, 60000);
+}
+
+/* ------------------------------------------------------------------ toasts */
+function toast(message, kind) {
+  const root = el('toasts');
+  if (!root) return;
+  const type = kind || 'ok';
+  const node = document.createElement('div');
+  node.className = 'toast ' + type;
+  node.innerHTML = '<span class="msg">' + esc(message) + '</span>' +
+    '<button class="x" type="button" aria-label="Dismiss">×</button>';
+  const dismiss = function () {
+    if (!node.parentNode) return;
+    node.classList.add('out');
+    setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 180);
+  };
+  node.querySelector('.x').addEventListener('click', dismiss);
+  root.appendChild(node);
+  const ttl = type === 'error' ? 7000 : 4200;
+  setTimeout(dismiss, ttl);
+}
+
+/* ------------------------------------------------------------------ modals */
+let modalCloser = null;
+
+function closeModal() {
+  const root = el('modalRoot');
+  if (!root) return;
+  if (modalCloser) { const fn = modalCloser; modalCloser = null; fn(); }
+  root.innerHTML = '';
+  document.removeEventListener('keydown', modalKeydown);
+  document.body.style.overflow = '';
+}
+
+function modalKeydown(event) {
+  if (event.key === 'Escape') {
+    event.stopPropagation();
+    closeModal();
+  }
+}
+
+function openModal(html, opts) {
+  const options = opts || {};
+  const root = el('modalRoot');
+  if (!root) return;
+  closeModal();
+  root.innerHTML = '<div class="overlay" data-overlay="1">' + html + '</div>';
+  document.body.style.overflow = 'hidden';
+  document.addEventListener('keydown', modalKeydown);
+
+  const overlay = root.querySelector('[data-overlay]');
+  if (overlay) {
+    overlay.addEventListener('mousedown', function (event) {
+      if (event.target === overlay && !options.locked) closeModal();
+    });
+  }
+  root.querySelectorAll('[data-close]').forEach(function (btn) {
+    btn.addEventListener('click', closeModal);
+  });
+  const focusTarget = root.querySelector('[data-autofocus]') || root.querySelector('input,textarea,select,button');
+  if (focusTarget) setTimeout(function () { try { focusTarget.focus(); } catch (e) {} }, 30);
+  modalCloser = options.onClose || null;
+  if (typeof options.onMount === 'function') options.onMount(root);
+}
+
+function confirmDialog(opts) {
+  const o = opts || {};
+  return new Promise(function (resolve) {
+    let settled = false;
+    const finish = function (value) {
+      if (settled) return;
+      settled = true;
+      closeModal();
+      resolve(value);
+    };
+    const html =
+      '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="cfmTitle">' +
+        '<div class="modal-head"><h3 id="cfmTitle">' + esc(o.title || 'Confirm action') + '</h3>' +
+          '<button class="x" type="button" data-close aria-label="Close">×</button></div>' +
+        '<div class="modal-body"><p class="confirm-txt">' + (o.html || esc(o.message || '')) + '</p></div>' +
+        '<div class="modal-foot">' +
+          '<button class="btn" type="button" data-act="cancel">Cancel</button>' +
+          '<button class="btn ' + (o.danger ? 'btn-danger' : 'btn-primary') + '" type="button" data-act="ok" data-autofocus>' +
+            esc(o.confirmLabel || 'Confirm') + '</button>' +
+        '</div>' +
+      '</div>';
+    openModal(html, {
+      locked: !!o.locked,
+      onClose: function () { if (!settled) { settled = true; resolve(false); } },
+      onMount: function (root) {
+        const ok = root.querySelector('[data-act="ok"]');
+        const cancel = root.querySelector('[data-act="cancel"]');
+        if (ok) ok.addEventListener('click', function () { finish(true); });
+        if (cancel) cancel.addEventListener('click', function () { finish(false); });
+      }
+    });
+  });
+}
+
+async function copyText(value, label) {
+  const text = String(value === null || value === undefined ? '' : value);
+  if (!text) { toast('Nothing to copy', 'warn'); return; }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', 'readonly');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    toast((label || 'Copied') + ' to clipboard', 'ok');
+  } catch (err) {
+    toast('Clipboard blocked by the browser', 'warn');
+  }
+}
+
+/* ------------------------------------------------------------------ router */
+const NAV_ITEMS = [
+  { route: 'dashboard', title: 'Dashboard', sub: 'Ringkasan operasi' },
+  { route: 'new', title: 'New Scan', sub: 'Mulai asesmen baru' },
+  { route: 'history', title: 'History', sub: 'Arsip scan' },
+  { route: 'scopes', title: 'Scopes & Authorization', sub: 'Registri izin engagement' },
+  { route: 'certificates', title: 'Certificates', sub: 'Bukti engagement tertandatangan' },
+  { route: 'audit', title: 'Audit Trail', sub: 'Jejak aktivitas lokal' },
+  { route: 'payloads', title: 'Canaries', sub: 'Penanda validasi non-eksploitasi' },
+  { route: 'settings', title: 'Settings', sub: 'Konfigurasi runtime' }
+];
+
+const ROUTES = {};
+let routeSeq = 0;
+let routeCleanups = [];
+
+function addCleanup(fn) {
+  if (typeof fn === 'function') routeCleanups.push(fn);
+}
+
+function clearCleanups() {
+  routeCleanups.forEach(function (fn) {
+    try { fn(); } catch (err) { /* a stale timer must never break navigation */ }
+  });
+  routeCleanups = [];
+}
+
+function parseHash() {
+  const raw = (location.hash || '').replace(/^#\/?/, '');
+  const bits = raw.split('/').filter(function (p) { return p.length > 0; });
+  const name = bits[0] || 'dashboard';
+  return { name: name, args: bits.slice(1) };
+}
+
+function setActiveNav(routeName) {
+  document.querySelectorAll('#nav .nav-item').forEach(function (item) {
+    const active = item.getAttribute('data-route') === routeName;
+    item.classList.toggle('active', active);
+    if (active) item.setAttribute('aria-current', 'page');
+    else item.removeAttribute('aria-current');
+  });
+}
+
+function setPageHead(title, sub) {
+  const t = el('pageTitle');
+  const s = el('pageSub');
+  if (t) t.textContent = title;
+  if (s) s.textContent = sub || '';
+  document.title = 'IRNXSEC Pro — ' + title;
+}
+
+function setBindChip(host) {
+  const node = el('sbBind');
+  if (node && host) node.textContent = host;
+}
+
+function offlinePanel(message) {
+  return '<div class="panel"><div class="panel-body">' +
+    '<div class="alert alert-danger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l8 14H4z"/><path d="M12 9.5v4M12 16.2v.1"/></svg>' +
+    '<div><b>Could not load this view.</b><br>' + esc(message || 'Unknown error') + '</div></div>' +
+    '<div class="btn-row" style="margin-top:14px"><button class="btn" type="button" id="retryBtn">Retry</button></div>' +
+    '</div></div>';
+}
+
+async function router() {
+  const parsed = parseHash();
+  const name = ROUTES[parsed.name] ? parsed.name : 'dashboard';
+  const entry = ROUTES[name];
+  const seq = ++routeSeq;
+
+  clearCleanups();
+  closeModal();
+
+  const view = el('view');
+  if (!view) return;
+  setActiveNav(name === 'scan' ? 'history' : name);
+  setPageHead(entry.title, entry.sub);
+  view.innerHTML = '<div class="panel"><div class="panel-body">' + skeletonRows(4) + '</div></div>';
+  view.scrollTop = 0;
+  window.scrollTo({ top: 0, behavior: 'auto' });
+
+  const alive = function () { return seq === routeSeq; };
+  try {
+    await entry.render(view, parsed.args, alive);
+  } catch (err) {
+    if (!alive()) return;
+    if (err && err.name === 'ApiError') {
+      view.innerHTML = offlinePanel(err.message);
+    } else {
+      view.innerHTML = offlinePanel((err && err.message) || 'Unexpected UI error');
+    }
+    const retry = el('retryBtn');
+    if (retry) retry.addEventListener('click', function () { router(); });
+  }
+}
+
+function go(hash) {
+  if (location.hash === hash) router();
+  else location.hash = hash;
+}
+
+/* ============================================================ screen: dashboard */
+function svgSeverityChart(severity) {
+  const counts = {};
+  SEV_KEYS.forEach(function (k) { counts[k] = num(severity && severity[k]); });
+  const values = SEV_KEYS.map(function (k) { return counts[k]; });
+  const max = Math.max.apply(null, values.concat([1]));
+  const W = 520, H = 190;
+  const padL = 6, padR = 6, padTop = 22, padBot = 30;
+  const plotH = H - padTop - padBot;
+  const n = SEV_KEYS.length;
+  const gap = 14;
+  const barW = (W - padL - padR - gap * (n - 1)) / n;
+
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="' + H + '" role="img" aria-label="Findings by severity" preserveAspectRatio="none" style="display:block">';
+  svg += '<defs>';
+  SEV_KEYS.forEach(function (key, i) {
+    const c = SEV_COLOR[key];
+    svg += '<linearGradient id="sevGrad' + i + '" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="' + c + '" stop-opacity="0.95"/>' +
+      '<stop offset="100%" stop-color="' + c + '" stop-opacity="0.28"/></linearGradient>';
+  });
+  svg += '</defs>';
+
+  for (let g = 1; g <= 3; g++) {
+    const y = padTop + plotH - (plotH * g / 3);
+    svg += '<line x1="' + padL + '" y1="' + y.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + y.toFixed(1) +
+      '" stroke="#151b23" stroke-width="1" stroke-dasharray="2 4"/>';
+  }
+  svg += '<line x1="' + padL + '" y1="' + (padTop + plotH) + '" x2="' + (W - padR) + '" y2="' + (padTop + plotH) + '" stroke="#1f2731" stroke-width="1"/>';
+
+  SEV_KEYS.forEach(function (key, i) {
+    const v = counts[key];
+    const x = padL + i * (barW + gap);
+    const h = v > 0 ? Math.max(3, (v / max) * plotH) : 2;
+    const y = padTop + plotH - h;
+    const color = SEV_COLOR[key];
+    svg += '<rect x="' + x.toFixed(1) + '" y="' + (padTop + plotH) + '" width="' + barW.toFixed(1) + '" height="0" rx="3" fill="url(#sevGrad' + i + ')">' +
+      '<animate attributeName="height" from="0" to="' + h.toFixed(1) + '" dur="0.45s" fill="freeze" calcMode="spline" keySplines="0.2 0.8 0.2 1" keyTimes="0;1"/>' +
+      '<animate attributeName="y" from="' + (padTop + plotH) + '" to="' + y.toFixed(1) + '" dur="0.45s" fill="freeze" calcMode="spline" keySplines="0.2 0.8 0.2 1" keyTimes="0;1"/>' +
+      '</rect>';
+    svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="1" fill="' + color + '" opacity="0.9"/>';
+    svg += '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (y - 7).toFixed(1) + '" text-anchor="middle" ' +
+      'font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12" fill="' + (v > 0 ? '#e8f2f8' : '#4a5563') + '">' + v + '</text>';
+    svg += '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (H - 10) + '" text-anchor="middle" ' +
+      'font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="8.5" letter-spacing="1.1" fill="#5b6675">' +
+      key.slice(0, 4).toUpperCase() + '</text>';
+  });
+
+  svg += '</svg>';
+  return svg;
+}
+
+function scopeRowsHtml(scopes) {
+  if (!scopes.length) {
+    return emptyState('No active scopes', 'Register an engagement first', '<a class="btn btn-sm" href="#/scopes">Register scope</a>');
+  }
+  return '<div class="table-wrap"><table class="tbl"><thead><tr>' +
+    '<th>Scope</th><th>Targets</th><th>Basis</th><th class="nowrap">Expires</th>' +
+    '</tr></thead><tbody>' +
+    scopes.map(function (s) {
+      const left = daysLeft(s.expires_at);
+      const tone = left === null ? 'chip-plain' : (left <= 3 ? 'chip-bad' : (left <= 14 ? 'chip-warn' : 'chip-ok'));
+      const targets = (s.targets || []).slice(0, 2).map(function (t) {
+        return '<span class="chip chip-target">' + esc(t) + '</span>';
+      }).join(' ');
+      const more = (s.targets || []).length > 2 ? '<span class="chip chip-tiny chip-plain">+' + ((s.targets || []).length - 2) + '</span>' : '';
+      return '<tr>' +
+        '<td><div class="mono" style="font-size:11.5px;color:#dfeaf2">' + esc(s.name || '—') + '</div>' +
+          '<div class="tiny dim mono">' + esc(s.id || '') + '</div></td>' +
+        '<td><div style="display:flex;gap:4px;flex-wrap:wrap">' + (targets || '<span class="dim tiny">—</span>') + more + '</div></td>' +
+        '<td><span class="chip chip-plain">' + esc(AUTHZ_LABEL[s.authorization] || s.authorization || '—') + '</span></td>' +
+        '<td><span class="chip ' + tone + '">' + esc(countdownText(s.expires_at)) + '</span></td>' +
+        '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+}
+
+function recentScansHtml(scans) {
+  if (!scans.length) {
+    return '<div class="tbl-empty"><span class="big">No scans yet</span>Run your first authorized assessment to populate this table.' +
+      '<div style="margin-top:12px"><a class="btn btn-primary btn-sm" href="#/new">New scan</a></div></div>';
+  }
+  return '<div class="table-wrap"><table class="tbl"><thead><tr>' +
+    '<th>Target</th><th>Kind</th><th>Profile</th><th class="num">Risk</th><th>Status</th><th>Started</th>' +
+    '</tr></thead><tbody>' +
+    scans.map(function (s) {
+      return '<tr class="clickable" data-scan="' + esc(s.id) + '" tabindex="0">' +
+        '<td><span class="mono" style="font-size:11.5px;color:#e2ecf3">' + esc(s.target || '—') + '</span></td>' +
+        '<td>' + kindChip(s.kind) + '</td>' +
+        '<td><span class="mono tiny muted">' + esc(s.profile || '—') + '</span></td>' +
+        '<td class="num">' + riskCell(s.risk_score) + '</td>' +
+        '<td>' + statusChip(s.status) + '</td>' +
+        '<td class="mono tiny dim nowrap" title="' + esc(fmtDate(s.started_at)) + '">' + esc(relTime(s.started_at)) + '</td>' +
+        '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+}
+
+function bindScanRows(root) {
+  root.querySelectorAll('tr[data-scan]').forEach(function (row) {
+    const id = row.getAttribute('data-scan');
+    const open = function () { go('#/scan/' + encodeURIComponent(id)); };
+    row.addEventListener('click', open);
+    row.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); }
+    });
+  });
+}
+
+ROUTES.dashboard = {
+  title: 'Dashboard',
+  sub: 'Ringkasan operasi',
+  render: async function (view, args, alive) {
+    const data = await Promise.all([api('/api/overview'), api('/api/scopes')]);
+    if (!alive()) return;
+    const overview = data[0] || {};
+    const scopes = (data[1] && data[1].scopes) ? data[1].scopes : [];
+    const usable = scopes.filter(function (s) { return s.usable; });
+    const severity = overview.severity || {};
+    const critical = num(severity.critical);
+    const totalFindings = SEV_KEYS.reduce(function (sum, k) { return sum + num(severity[k]); }, 0);
+    const recent = overview.recent || [];
+    const avgRisk = round(overview.avg_risk, 1);
+
+    view.innerHTML =
+      '<div class="grid grid-4">' +
+        '<div class="stat accent"><div class="stat-label">Total scans</div>' +
+          '<div class="stat-val">' + esc(num(overview.scans)) + '</div>' +
+          '<div class="stat-foot"><span class="mono tiny dim">' + esc(kindBreakdown(overview.by_kind)) + '</span></div></div>' +
+        '<div class="stat"><div class="stat-label">Average risk</div>' +
+          '<div class="stat-val" style="color:' + riskColor(avgRisk) + '">' + esc(avgRisk.toFixed(1)) + '<small>/100</small></div>' +
+          '<div class="stat-foot"><span class="mono tiny dim">' + esc(totalFindings) + ' findings recorded</span></div></div>' +
+        '<div class="stat"><div class="stat-label">Active scopes</div>' +
+          '<div class="stat-val">' + esc(usable.length) + '</div>' +
+          '<div class="stat-foot"><span class="mono tiny dim">' + esc(scopes.length - usable.length) + ' expired or revoked</span></div></div>' +
+        '<div class="stat crit"><div class="stat-label">Critical findings</div>' +
+          '<div class="stat-val">' + esc(critical) + '</div>' +
+          '<div class="stat-foot"><span class="mono tiny dim">' + (critical > 0 ? 'Immediate triage required' : 'No critical exposure') + '</span></div></div>' +
+      '</div>' +
+
+      '<div class="two-col" style="margin-top:16px">' +
+        '<div class="panel">' +
+          '<div class="panel-head"><h2>Severity distribution</h2><div class="spacer"></div>' +
+            '<span class="chip chip-plain">' + esc(totalFindings) + ' total</span></div>' +
+          '<div class="panel-body"><div class="chart-svg">' + svgSeverityChart(severity) + '</div></div>' +
+        '</div>' +
+        '<div class="panel">' +
+          '<div class="panel-head"><h2>Authorization</h2><div class="spacer"></div>' +
+            '<a class="btn btn-sm" href="#/scopes">Registry</a></div>' +
+          (usable.length
+            ? '<div class="panel-body" style="padding:0">' + scopeRowsHtml(usable.slice(0, 4)) + '</div>'
+            : '<div class="panel-body">' + scopeRowsHtml([]) + '</div>') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="panel" style="margin-top:16px">' +
+        '<div class="panel-head"><h2>Recent scans</h2><div class="spacer"></div>' +
+          '<a class="btn btn-sm" href="#/history">View all</a></div>' +
+        recentScansHtml(recent) +
+      '</div>' +
+
+      '<div class="alert alert-accent" style="margin-top:16px">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.3-2.9 7.6-7 9.5-4.1-1.9-7-5.2-7-9.5V6z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg>' +
+        '<div><b>Authorization first.</b> Every scan is checked against the scope registry before a single packet leaves this machine. ' +
+        'Loopback and private lab ranges are always allowed; everything else needs an active engagement record.</div>' +
+      '</div>';
+
+    bindScanRows(view);
+  }
+};
+
+function kindBreakdown(byKind) {
+  const entries = Object.keys(byKind || {});
+  if (!entries.length) return 'no scans recorded';
+  return entries.map(function (k) { return (KIND_LABEL[k] || k) + ' ' + num(byKind[k]); }).join(' · ');
+}
+
+/* ============================================================ screen: new scan */
+const PROFILES = [
+  { id: 'quick', name: 'Quick', desc: 'Surface triage: headers, TLS, exposed files. Fastest safe pass.', meta: '12 paths · no forms' },
+  { id: 'standard', name: 'Standard', desc: 'Balanced coverage across crawl, forms, params and top ports.', meta: '30 paths · 100 ports' },
+  { id: 'deep', name: 'Deep', desc: 'Widest crawl and port range. Longer runtime, same request budget.', meta: '60 paths · 1000 ports' }
+];
+
+ROUTES.new = {
+  title: 'New Scan',
+  sub: 'Mulai asesmen baru',
+  render: async function (view, args, alive) {
+    let scopes = [];
+    try {
+      const data = await api('/api/scopes');
+      scopes = (data && data.scopes) ? data.scopes.filter(function (s) { return s.usable; }) : [];
+    } catch (err) {
+      if (!alive()) return;
+      throw err;
+    }
+    if (!alive()) return;
+
+    const state = { kind: 'web', profile: 'standard', scopeId: '', target: '' };
+
+    view.innerHTML =
+      '<div class="two-col">' +
+        '<form class="panel" id="scanForm" novalidate>' +
+          '<div class="panel-head"><h2>Engagement target</h2><div class="spacer"></div>' +
+            '<span class="chip chip-warn">authorization required</span></div>' +
+          '<div class="panel-body form-grid">' +
+
+            '<div class="alert alert-warn">' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l8 14H4z"/><path d="M12 9.5v4M12 16.2v.1"/></svg>' +
+              '<div><b>Stay inside the authorized scope.</b> Only scan systems you own or hold written permission to test. ' +
+              'Requests are rate-limited and capped by the configured budget — do not raise limits to brute-force a third party.</div>' +
+            '</div>' +
+
+            '<div class="field">' +
+              '<label for="fTarget">Target</label>' +
+              '<input class="input" id="fTarget" name="target" type="text" autocomplete="off" spellcheck="false" autofocus ' +
+                'placeholder="https://app.example.com  ·  10.0.0.0/24  ·  example.com">' +
+              '<div class="hint" id="targetHint">Exact host, URL or CIDR. Loopback and private lab ranges never leave this machine.</div>' +
+            '</div>' +
+
+            '<div class="field">' +
+              '<span class="lbl" id="kindLabel">Kind</span>' +
+              '<div class="seg" role="group" aria-labelledby="kindLabel" id="kindSeg">' +
+                '<button type="button" data-kind="web" aria-pressed="true">Web</button>' +
+                '<button type="button" data-kind="network" aria-pressed="false">Network</button>' +
+                '<button type="button" data-kind="dns" aria-pressed="false">DNS</button>' +
+              '</div>' +
+            '</div>' +
+
+            '<div class="field">' +
+              '<span class="lbl">Profile</span>' +
+              '<div class="profiles" id="profWrap" role="group" aria-label="Scan profile">' +
+                PROFILES.map(function (p) {
+                  return '<button type="button" class="prof" data-prof="' + p.id + '" aria-pressed="' + (p.id === 'standard') + '">' +
+                    '<span class="prof-top"><span class="prof-name">' + esc(p.name) + '</span>' +
+                    (p.id === 'standard' ? '<span class="chip chip-tiny chip-accent">default</span>' : '') + '</span>' +
+                    '<span class="prof-desc">' + esc(p.desc) + '</span>' +
+                    '<span class="prof-meta">' + esc(p.meta) + '</span>' +
+                    '</button>';
+                }).join('') +
+              '</div>' +
+            '</div>' +
+
+            '<div class="field">' +
+              '<label for="fScope">Authorization scope</label>' +
+              '<select class="select" id="fScope" name="scope_id">' +
+                '<option value="">— none (lab / loopback only) —</option>' +
+                scopes.map(function (s) {
+                  return '<option value="' + esc(s.id) + '">' + esc(s.name + ' · ' + s.id + ' · ' + countdownText(s.expires_at)) + '</option>';
+                }).join('') +
+              '</select>' +
+              '<div class="hint">' + (scopes.length
+                ? 'Only active, unexpired scopes are listed. Public targets require a matching scope.'
+                : 'No usable scopes yet — public targets will be refused. <a href="#/scopes">Register an engagement</a> first.') +
+              '</div>' +
+            '</div>' +
+
+            '<label class="check" for="fAuthorized">' +
+              '<input type="checkbox" id="fAuthorized" name="confirm_authorized">' +
+              '<span>I own this system or hold written authorization to test it</span>' +
+            '</label>' +
+
+            '<div id="formError" hidden></div>' +
+
+            '<div class="btn-row">' +
+              '<button class="btn btn-primary" type="submit" id="submitBtn">' +
+                '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12.5 5.5L19 12l-6.5 6.5"/></svg>' +
+                'Start scan</button>' +
+              '<button class="btn" type="reset" id="resetBtn">Reset</button>' +
+              '<span class="hint" style="margin-left:auto">Ctrl/⌘ + Enter to start</span>' +
+            '</div>' +
+          '</div>' +
+        '</form>' +
+
+        '<div id="runPanel">' +
+          '<div class="panel">' +
+            '<div class="panel-head"><h2>Run</h2></div>' +
+            '<div class="panel-body">' +
+              '<div class="empty" style="padding:26px 8px">' +
+                '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4.4l3 1.8"/></svg>' +
+                '<span class="t">Idle</span>' +
+                '<span class="d">Progress appears here once a scan is queued.</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="panel">' +
+            '<div class="panel-head"><h2>Before you start</h2></div>' +
+            '<div class="panel-body" style="display:grid;gap:10px">' +
+              '<div class="kv-inline"><span>Rate limit <b id="kRate">—</b></span><span>Budget <b id="kBudget">—</b></span><span>Hosts <b id="kHosts">—</b></span></div>' +
+              '<div class="alert" style="font-size:12px">' +
+                '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v4.4M12 15.6v.1"/></svg>' +
+                '<div id="budgetNote">Loading runtime limits…</div>' +
+              '</div>' +
+              '<div class="hint">Findings are evidence-backed. A <i>tentative</i> confidence rating means the signal needs manual validation before you report it.</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    /* runtime limits are informational only */
+    api('/api/settings').then(function (data) {
+      if (!alive()) return;
+      const s = (data && data.settings) || {};
+      const set = function (id, text) { const n = el(id); if (n) n.textContent = text; };
+      set('kRate', num(s.rate_limit, 4).toFixed(1) + ' req/s');
+      set('kBudget', num(s.max_requests, 400) + ' req');
+      set('kHosts', String(num(s.max_hosts, 32)));
+      const note = el('budgetNote');
+      if (note) {
+        note.textContent = s.require_authz === false
+          ? 'Authorization enforcement is disabled in settings — public targets will run without a scope record. Re-enable it unless this is an isolated lab.'
+          : 'Authorization enforcement is on: public targets are refused unless they match an active scope.';
+      }
+    }).catch(function () { /* limits panel is optional */ });
+
+    const form = el('scanForm');
+    const targetInput = el('fTarget');
+    const scopeSelect = el('fScope');
+    const authBox = el('fAuthorized');
+    const submitBtn = el('submitBtn');
+    const errorBox = el('formError');
+
+    function paintKind(kind) {
+      state.kind = kind;
+      el('kindSeg').querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-kind') === kind));
+      });
+      const placeholders = {
+        web: 'https://app.example.com',
+        network: '10.0.0.0/24  ·  192.168.56.10',
+        dns: 'example.com'
+      };
+      if (targetInput) targetInput.placeholder = placeholders[kind] || '';
+      const hint = el('targetHint');
+      if (hint) {
+        hint.textContent = kind === 'network'
+          ? 'IP address or CIDR range. Host count is capped by max_hosts in settings.'
+          : (kind === 'dns' ? 'Bare hostname — no scheme, no path. Resolver, SOA, MX, TXT and AXFR checks.' : 'Exact URL or host. Scheme defaults to https.');
+      }
+    }
+
+    function paintProfile(profile) {
+      state.profile = profile;
+      el('profWrap').querySelectorAll('.prof').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-prof') === profile));
+      });
+    }
+
+    el('kindSeg').addEventListener('click', function (event) {
+      const btn = event.target.closest('button[data-kind]');
+      if (btn) paintKind(btn.getAttribute('data-kind'));
+    });
+    el('profWrap').addEventListener('click', function (event) {
+      const btn = event.target.closest('.prof');
+      if (btn) paintProfile(btn.getAttribute('data-prof'));
+    });
+    scopeSelect.addEventListener('change', function () { state.scopeId = scopeSelect.value; });
+
+    /* live target validation against the local normalizer */
+    let validateTimer = 0;
+    function validateTarget() {
+      const value = (targetInput.value || '').trim();
+      const hint = el('targetHint');
+      if (!hint) return;
+      if (!value) {
+        hint.className = 'hint';
+        hint.textContent = 'Exact host, URL or CIDR. Loopback and private lab ranges never leave this machine.';
+        return;
+      }
+      clearTimeout(validateTimer);
+      validateTimer = setTimeout(function () {
+        api('/api/targets/validate', { method: 'POST', body: { target: value, kind: state.kind } })
+          .then(function (data) {
+            if (!alive() || !data) return;
+            if (data.valid) {
+              hint.className = 'hint';
+              hint.innerHTML = 'Normalized: <span class="mono" style="color:#9dffdb">' + esc(data.normalized) + '</span>' +
+                (data.lab ? ' <span class="chip chip-tiny chip-accent">lab target</span>' : '') +
+                (data.host ? ' · host <span class="mono">' + esc(data.host) + '</span>' : '') +
+                (data.covered === false
+                  ? '<div style="margin-top:6px;color:#ff9db3"><svg viewBox="0 0 24 24" width="11" height="11" style="vertical-align:-1px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v6M12 16.6v.6"/></svg> ' + esc(data.reason || 'No active scope covers this target - the scan will be blocked.') + '</div>'
+                  : (data.covered ? '<div style="margin-top:6px;color:#7dffc4"><svg viewBox="0 0 24 24" width="11" height="11" style="vertical-align:-1px;stroke:currentColor;fill:none;stroke-width:2"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg> ' + esc(data.reason || 'Authorized') + '</div>' : ''));
+            } else {
+              hint.className = 'hint';
+              hint.innerHTML = '<span style="color:#ff9db3">' + esc(data.reason || 'Invalid target') + '</span>';
+            }
+          })
+          .catch(function () { /* toast already shown by api() */ });
+      }, 320);
+    }
+    targetInput.addEventListener('input', function () { state.target = targetInput.value.trim(); });
+    targetInput.addEventListener('blur', validateTarget);
+    addCleanup(function () { clearTimeout(validateTimer); });
+
+    function showFormError(message) {
+      errorBox.hidden = false;
+      errorBox.innerHTML = '<div class="alert alert-danger">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l8 14H4z"/><path d="M12 9.5v4M12 16.2v.1"/></svg>' +
+        '<div class="alert-mono">' + esc(message) + '</div></div>';
+    }
+    function clearFormError() { errorBox.hidden = true; errorBox.innerHTML = ''; }
+
+    /* ---------------------------------------------------------- live polling */
+    let pollTimer = 0;
+    let tickTimer = 0;
+    let pollDeadline = 0;
+    let pollStopped = false;
+
+    function stopPolling() {
+      pollStopped = true;
+      clearTimeout(pollTimer);
+      clearInterval(tickTimer);
+    }
+    addCleanup(stopPolling);
+
+    function renderRunStart(payload) {
+      const panel = el('runPanel');
+      if (!panel) return;
+      panel.innerHTML =
+        '<div class="panel">' +
+          '<div class="panel-head"><h2>Run</h2><div class="spacer"></div>' + statusChip(payload.status || 'queued') + '</div>' +
+          '<div class="progress-shell">' +
+            '<div class="prog-top">' + spinnerSvg() +
+              '<span class="prog-title" id="runState">' + esc(payload.status || 'queued') + '</span>' +
+              '<span class="prog-meta">elapsed <span id="runElapsed">0s</span></span>' +
+            '</div>' +
+            '<div class="prog-track"><div class="prog-fill indet" id="runFill"></div></div>' +
+            '<div class="mono tiny dim" id="runDetail">Scan ' + esc(payload.scan_id || '') + ' dispatched. Polling every 1.5s…</div>' +
+            '<div class="log" id="runLog"><div class="log-line"><span class="t">' + esc(stamp()) + '</span><span>queued · ' + esc(payload.scan_id || '') + '</span></div></div>' +
+            '<div class="btn-row"><button class="btn btn-sm" type="button" id="runCancel">Stop watching</button>' +
+              '<a class="btn btn-sm" href="#/history">History</a></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="panel"><div class="panel-head"><h2>Target</h2></div><div class="panel-body">' +
+          '<div class="cert-kv">' +
+            '<div><div class="k">Target</div><div class="v">' + esc(state.target) + '</div></div>' +
+            '<div><div class="k">Kind</div><div class="v">' + esc(KIND_LABEL[state.kind] || state.kind) + '</div></div>' +
+            '<div><div class="k">Profile</div><div class="v">' + esc(state.profile) + '</div></div>' +
+          '</div>' +
+        '</div></div>';
+
+      const cancel = el('runCancel');
+      if (cancel) {
+        cancel.addEventListener('click', function () {
+          stopPolling();
+          toast('Stopped watching — the scan keeps running server-side', 'warn');
+          const stateEl = el('runState');
+          if (stateEl) stateEl.textContent = 'detached';
+          const fill = el('runFill');
+          if (fill) { fill.classList.remove('indet'); fill.style.width = '0%'; }
+        });
+      }
+
+      const started = Date.now();
+      tickTimer = setInterval(function () {
+        const node = el('runElapsed');
+        if (node) node.textContent = dur((Date.now() - started) / 1000);
+      }, 250);
+      pollDeadline = started + 180000;
+    }
+
+    function logLine(text) {
+      const log = el('runLog');
+      if (!log) return;
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      line.innerHTML = '<span class="t">' + esc(stamp()) + '</span><span>' + esc(text) + '</span>';
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function stamp() {
+      const d = new Date();
+      return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+    }
+
+    function renderRunState(scan) {
+      const stateEl = el('runState');
+      const fill = el('runFill');
+      const detail = el('runDetail');
+      const status = String(scan.status || 'running').toLowerCase();
+      if (stateEl) stateEl.textContent = status;
+      if (detail) {
+        let text = 'Scan ' + (scan.id || '') + ' · ' + status;
+        if (scan.risk_score !== undefined && scan.risk_score !== null) text += ' · risk ' + round(scan.risk_score, 1);
+        detail.textContent = text;
+      }
+      if (fill) {
+        if (status === 'running' || status === 'queued') {
+          fill.classList.add('indet');
+        } else {
+          fill.classList.remove('indet');
+          fill.style.width = '100%';
+        }
+      }
+      const head = el('runPanel') && el('runPanel').querySelector('.panel-head');
+      if (head) {
+        const chip = head.querySelector('.chip');
+        if (chip && chip.parentNode) chip.parentNode.removeChild(chip);
+        head.insertAdjacentHTML('beforeend', '<div class="spacer"></div>' + statusChip(status));
+      }
+    }
+
+    async function pollOnce(scanId) {
+      if (pollStopped || !alive()) return;
+      let scan;
+      try {
+        scan = await api('/api/scans/' + encodeURIComponent(scanId));
+      } catch (err) {
+        stopPolling();
+        const detail = el('runDetail');
+        if (detail) detail.textContent = 'Polling stopped: ' + (err.message || 'request failed');
+        return;
+      }
+      if (!alive() || pollStopped) return;
+      renderRunState(scan || {});
+      const status = String((scan && scan.status) || '').toLowerCase();
+      if (status === 'complete') {
+        stopPolling();
+        logLine('complete — opening report');
+        toast('Scan complete', 'ok');
+        setTimeout(function () { if (alive()) go('#/scan/' + encodeURIComponent(scanId)); }, 420);
+        return;
+      }
+      if (status === 'failed') {
+        stopPolling();
+        logLine('failed');
+        const detail = el('runDetail');
+        const errs = (scan && scan.result && scan.result.errors) || [];
+        if (detail) detail.textContent = 'Scan failed' + (errs.length ? ': ' + errs.join(' · ') : '');
+        toast('Scan failed — see the detail view for engine errors', 'error');
+        return;
+      }
+      if (Date.now() > pollDeadline) {
+        stopPolling();
+        const detail = el('runDetail');
+        if (detail) detail.textContent = 'Still running after 3 minutes — stopped watching. Open the scan from History.';
+        toast('Stopped watching after 180s; the scan continues server-side', 'warn');
+        return;
+      }
+      logLine(status || 'running');
+      pollTimer = setTimeout(function () { pollOnce(scanId); }, 1500);
+    }
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      clearFormError();
+      const target = (targetInput.value || '').trim();
+      if (!target) {
+        showFormError('Target is required.');
+        targetInput.focus();
+        return;
+      }
+      if (!authBox.checked) {
+        showFormError('You must confirm ownership or written authorization before starting a scan.');
+        authBox.focus();
+        return;
+      }
+      state.target = target;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = spinnerSvg() + 'Dispatching…';
+      try {
+        const body = {
+          target: target,
+          kind: state.kind,
+          profile: state.profile,
+          scope_id: scopeSelect.value || '',
+          confirm_authorized: true
+        };
+        const res = await api('/api/scans', { method: 'POST', body: body });
+        if (!alive()) return;
+        const scanId = res && res.scan_id;
+        if (!scanId) {
+          showFormError('The server accepted the request but returned no scan id.');
+          return;
+        }
+        renderRunStart({ scan_id: scanId, status: (res && res.status) || 'running' });
+        pollStopped = false;
+        pollOnce(scanId);
+      } catch (err) {
+        if (!alive()) return;
+        showFormError(err.message || 'Could not start the scan.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12.5 5.5L19 12l-6.5 6.5"/></svg>Start scan';
+        }
+      }
+    });
+
+    form.addEventListener('keydown', function (event) {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit', { cancelable: true }));
+      }
+    });
+
+    el('resetBtn').addEventListener('click', function () {
+      clearFormError();
+      paintKind('web');
+      paintProfile('standard');
+      const hint = el('targetHint');
+      if (hint) hint.className = 'hint';
+    });
+
+    paintKind('web');
+    paintProfile('standard');
+  }
+};
+
+/* ============================================================ screen: scan detail */
+function riskGauge(score) {
+  const v = Math.max(0, Math.min(100, num(score)));
+  const W = 190, H = 108;
+  const cx = W / 2, cy = 88, r = 66;
+  const startA = Math.PI, endA = 0;
+  const angle = startA + (endA - startA) * (v / 100);
+  const arc = function (from, to) {
+    const x1 = cx + r * Math.cos(from), y1 = cy + r * Math.sin(from);
+    const x2 = cx + r * Math.cos(to), y2 = cy + r * Math.sin(to);
+    const large = Math.abs(to - from) > Math.PI ? 1 : 0;
+    const sweep = to < from ? 1 : 0;
+    return 'M ' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' A ' + r + ' ' + r + ' 0 ' + large + ' ' + sweep + ' ' + x2.toFixed(2) + ' ' + y2.toFixed(2);
+  };
+  const color = riskColor(v);
+  const needleX = cx + (r - 12) * Math.cos(angle);
+  const needleY = cy + (r - 12) * Math.sin(angle);
+
+  return '<svg class="gauge" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Risk score ' + v.toFixed(1) + ' out of 100">' +
+    '<defs><linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">' +
+      '<stop offset="0%" stop-color="#00ffa3"/><stop offset="45%" stop-color="#ffc93c"/>' +
+      '<stop offset="100%" stop-color="#ff2d55"/></linearGradient></defs>' +
+    '<path d="' + arc(startA, endA) + '" fill="none" stroke="#161d26" stroke-width="9" stroke-linecap="round"/>' +
+    '<path d="' + arc(startA, angle) + '" fill="none" stroke="url(#gaugeGrad)" stroke-width="9" stroke-linecap="round" opacity="0.95"/>' +
+    '<line x1="' + cx + '" y1="' + cy + '" x2="' + needleX.toFixed(2) + '" y2="' + needleY.toFixed(2) + '" stroke="' + color + '" stroke-width="2" stroke-linecap="round"/>' +
+    '<circle cx="' + cx + '" cy="' + cy + '" r="3.4" fill="' + color + '"/>' +
+    '<text x="' + cx + '" y="' + (cy - 16) + '" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" ' +
+      'font-size="26" font-weight="600" fill="' + color + '">' + v.toFixed(1) + '</text>' +
+    '<text x="' + cx + '" y="' + (cy + 16) + '" text-anchor="middle" class="gauge-cap">RISK / 100</text>' +
+    '<text x="' + (cx - r) + '" y="' + (cy + 14) + '" text-anchor="middle" class="gauge-cap">0</text>' +
+    '<text x="' + (cx + r) + '" y="' + (cy + 14) + '" text-anchor="middle" class="gauge-cap">100</text>' +
+    '</svg>';
+}
+
+function findingDrawer(f, idx) {
+  const refs = Array.isArray(f.references) ? f.references : [];
+  const links = refs.length
+    ? '<div class="linklist">' + refs.map(function (r) {
+        const href = safeUrl(r);
+        const label = String(r);
+        return href
+          ? '<a href="' + esc(href) + '" target="_blank" rel="noreferrer">' + esc(label) + '</a>'
+          : '<span class="mono" style="font-size:11px;color:#8b97a8">' + esc(label) + '</span>';
+      }).join('') + '</div>'
+    : '<div class="val dim">None recorded</div>';
+
+  const meta = f.meta && typeof f.meta === 'object' && Object.keys(f.meta).length
+    ? '<div><h4>Meta</h4><pre class="code">' + esc(JSON.stringify(f.meta, null, 2)) + '</pre></div>'
+    : '';
+
+  const evidence = f.evidence
+    ? '<div><h4>Evidence</h4><pre class="code">' + esc(f.evidence) + '</pre></div>'
+    : '<div><h4>Evidence</h4><div class="val dim">No raw evidence captured for this finding.</div></div>';
+
+  return '<div class="drawer" data-finding="' + esc(f.id || idx) + '">' +
+    (f.detail ? '<div><h4>Detail</h4><div class="val">' + esc(f.detail) + '</div></div>' : '') +
+    evidence +
+    (f.remediation ? '<div><h4>Remediation</h4><div class="val">' + esc(f.remediation) + '</div></div>' : '') +
+    '<div class="kv">' +
+      '<div><h4>Severity</h4><div>' + severityChip(f.severity) + '</div></div>' +
+      '<div><h4>Confidence</h4><div>' + confidenceChip(f.confidence) + '</div></div>' +
+      '<div><h4>CWE</h4><div class="val mono">' + esc(f.cwe || '—') + '</div></div>' +
+      '<div><h4>CVSS</h4><div class="val mono">' + esc(f.cvss !== undefined && f.cvss !== null && num(f.cvss) > 0 ? round(f.cvss, 1).toFixed(1) : '—') + '</div></div>' +
+      '<div><h4>Location</h4><div class="val mono">' + esc(f.location || '—') + '</div></div>' +
+      '<div><h4>Category</h4><div class="val mono">' + esc(f.category || '—') + '</div></div>' +
+    '</div>' +
+    '<div><h4>References</h4>' + links + '</div>' +
+    meta +
+    '<div class="btn-row"><button class="btn btn-sm copy-btn" type="button" data-copy-finding="' + esc(f.id || idx) + '">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5.5H6.5A1.5 1.5 0 0 0 5 7v8.5"/></svg>' +
+      'Copy finding as JSON</button></div>' +
+    '</div>';
+}
+
+function confidenceChip(conf) {
+  const key = String(conf || 'tentative').toLowerCase();
+  const map = { confirmed: 'chip-ok', firm: 'chip-low', tentative: 'chip-warn' };
+  const title = {
+    confirmed: 'Directly observed during the scan',
+    firm: 'Strongly indicated by observed behaviour',
+    tentative: 'Heuristic signal that still needs manual validation'
+  };
+  return '<span class="chip ' + (map[key] || 'chip-plain') + ' tooltip" title="' + esc(title[key] || key) + '">' + esc(key) + '</span>';
+}
+
+ROUTES.scan = {
+  title: 'Scan detail',
+  sub: 'Temuan & bukti',
+  render: async function (view, args, alive) {
+    const scanId = args && args[0] ? decodeURIComponent(args[0]) : '';
+    if (!scanId) {
+      // A detail URL without an id is not an error state: send the operator to history.
+      setTimeout(function () { if (alive()) go('#/history'); }, 0);
+      view.innerHTML = '<div class="panel"><div class="panel-body">' + skeletonRows(2) + '</div></div>';
+      return;
+    }
+    const scan = await api('/api/scans/' + encodeURIComponent(scanId));
+    if (!alive()) return;
+    if (!scan) {
+      view.innerHTML = '<div class="panel"><div class="panel-body">' +
+        '<div class="alert alert-warn">Scan not found or already deleted.</div>' +
+        '<div class="btn-row" style="margin-top:12px"><a class="btn" href="#/history">Back to history</a></div></div></div>';
+      return;
+    }
+
+    const result = scan.result || {};
+    const findings = Array.isArray(result.findings) ? result.findings : [];
+    const observations = Array.isArray(result.observations) ? result.observations : [];
+    const errors = Array.isArray(result.errors) ? result.errors : [];
+    const summary = scan.summary || {};
+    const authorization = result.authorization || {};
+    const meta = result.metadata || {};
+    const status = String(scan.status || '').toLowerCase();
+    const scopeId = scan.scope_id || authorization.scope_id || '';
+
+    const summaryChips = SEV_KEYS.map(function (k) {
+      const count = num(summary[k]);
+      return '<span class="chip ' + SEV_CLASS[k] + '" title="' + esc(k) + '">' + esc(k) + ' ' + count + '</span>';
+    }).join('');
+
+    const findingRows = findings.length
+      ? findings.map(function (f, idx) {
+          return '<tr class="clickable" data-finding-row="' + esc(f.id || idx) + '" tabindex="0" aria-expanded="false">' +
+            '<td style="width:96px">' + severityChip(f.severity) + '</td>' +
+            '<td><div style="color:#e3edf5;font-size:12.5px">' + esc(f.title || '—') + '</div>' +
+              '<div class="tiny dim mono">' + esc(f.location || f.id || '') + '</div></td>' +
+            '<td><span class="chip chip-plain">' + esc(f.category || '—') + '</span></td>' +
+            '<td>' + confidenceChip(f.confidence) + '</td>' +
+            '<td class="num" style="width:74px">' + esc(num(f.cvss) > 0 ? round(f.cvss, 1).toFixed(1) : '—') + '</td>' +
+            '<td class="num" style="width:34px"><span class="dim mono">' + (f.detail || f.evidence ? '›' : '·') + '</span></td>' +
+            '</tr>';
+        }).join('')
+      : '';
+
+    const obsJson = JSON.stringify(observations, null, 2);
+
+    view.innerHTML =
+      '<div class="btn-row" style="margin-bottom:14px">' +
+        '<a class="btn btn-sm" href="#/history">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11.5 5.5L5 12l6.5 6.5"/></svg>History</a>' +
+        '<span class="chip chip-plain">' + esc(scanId) + '</span>' +
+        statusChip(scan.status) +
+        '<div style="flex:1"></div>' +
+        '<button class="btn btn-sm btn-danger" type="button" id="deleteScan">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9.5 7V5.5h5V7M7 7l.8 12h8.4L17 7"/></svg>Delete scan</button>' +
+      '</div>' +
+
+      '<div class="panel">' +
+        '<div class="panel-head">' +
+          '<div style="min-width:0"><div class="mono" style="font-size:14px;color:#eaf4fa;word-break:break-all">' + esc(scan.target || '—') + '</div>' +
+          '<div class="kv-inline" style="margin-top:5px">' +
+            '<span>kind <b>' + esc(KIND_LABEL[scan.kind] || scan.kind || '—') + '</b></span>' +
+            '<span>profile <b>' + esc(scan.profile || '—') + '</b></span>' +
+            '<span>started <b>' + esc(fmtDate(scan.started_at)) + '</b></span>' +
+            '<span>finished <b>' + esc(scan.finished_at ? fmtDate(scan.finished_at) : '—') + '</b></span>' +
+            (scopeId ? '<span>scope <b>' + esc(scopeId) + '</b></span>' : '<span>scope <b>none (lab)</b></span>') +
+          '</div></div>' +
+        '</div>' +
+        '<div class="panel-body" style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">' +
+          '<div style="flex:0 0 auto">' + riskGauge(scan.risk_score) + '</div>' +
+          '<div style="flex:1;min-width:220px;display:grid;gap:10px">' +
+            '<div style="display:flex;gap:6px;flex-wrap:wrap">' + summaryChips +
+              '<span class="chip chip-plain">total ' + esc(num(summary.total, findings.length)) + '</span></div>' +
+            '<div class="kv-inline">' +
+              '<span>requests <b>' + esc(num(result.requests_made)) + '</b></span>' +
+              '<span>observations <b>' + esc(observations.length) + '</b></span>' +
+              '<span>errors <b style="color:' + (errors.length ? '#ff9db3' : '') + '">' + esc(errors.length) + '</b></span>' +
+            '</div>' +
+            (Object.keys(meta).length
+              ? '<div class="hint mono" style="word-break:break-word">' + esc(Object.keys(meta).slice(0, 6).map(function (k) {
+                  const v = meta[k];
+                  return k + '=' + (typeof v === 'object' ? JSON.stringify(v) : v);
+                }).join(' · ')) + '</div>'
+              : '') +
+          '</div>' +
+          '<div style="flex:0 0 auto">' +
+            '<div class="lbl" style="margin-bottom:6px">Report</div>' +
+            '<div class="btn-row">' +
+              '<button class="btn btn-sm" type="button" data-report="json">JSON</button>' +
+              '<button class="btn btn-sm" type="button" data-report="md">Markdown</button>' +
+              '<button class="btn btn-sm" type="button" data-report="html">HTML</button>' +
+              '<button class="btn btn-sm" type="button" data-report="pdf">PDF</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      (errors.length
+        ? '<div class="panel"><div class="panel-head"><h2>Engine errors</h2><div class="spacer"></div>' +
+            '<span class="chip chip-bad">' + esc(errors.length) + '</span></div>' +
+            '<div class="panel-body" style="display:grid;gap:8px">' +
+            errors.map(function (e) {
+              return '<div class="alert alert-danger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l8 14H4z"/><path d="M12 9.5v4M12 16.2v.1"/></svg>' +
+                '<div class="alert-mono">' + esc(typeof e === 'string' ? e : JSON.stringify(e)) + '</div></div>';
+            }).join('') + '</div></div>'
+        : '') +
+
+      '<div class="panel">' +
+        '<div class="panel-head"><h2>Findings</h2><div class="spacer"></div>' +
+          '<span class="chip chip-plain">' + esc(findings.length) + '</span></div>' +
+        (findings.length
+          ? '<div class="table-wrap"><table class="tbl"><thead><tr>' +
+              '<th>Severity</th><th>Title</th><th>Category</th><th>Confidence</th><th class="num">CVSS</th><th></th>' +
+            '</tr></thead><tbody>' +
+            findings.map(function (f, idx) {
+              const fid = esc(f.id || idx);
+              return '<tr class="clickable" data-finding-row="' + fid + '" tabindex="0" aria-expanded="false">' +
+                '<td style="width:96px">' + severityChip(f.severity) + '</td>' +
+                '<td><div style="color:#e3edf5;font-size:12.5px">' + esc(f.title || '—') + '</div>' +
+                  '<div class="tiny dim mono">' + esc(f.location || f.id || '') + '</div></td>' +
+                '<td><span class="chip chip-plain">' + esc(f.category || '—') + '</span></td>' +
+                '<td>' + confidenceChip(f.confidence) + '</td>' +
+                '<td class="num" style="width:74px">' + esc(num(f.cvss) > 0 ? round(f.cvss, 1).toFixed(1) : '—') + '</td>' +
+                '<td class="num" style="width:34px"><span class="dim mono">›</span></td>' +
+                '</tr>' +
+                '<tr class="drawer-row" data-drawer="' + fid + '" hidden><td colspan="6">' + findingDrawer(f, idx) + '</td></tr>';
+            }).join('') +
+            '</tbody></table></div>'
+          : emptyState('No findings', 'This scan finished without a positive result. Review observations for raw signal.')) +
+      '</div>' +
+
+      '<div class="panel">' +
+        '<div class="panel-head"><h2>Observations</h2><div class="spacer"></div>' +
+          '<span class="chip chip-plain">' + esc(observations.length) + '</span>' +
+          '<button class="btn btn-sm" type="button" id="obsToggle" aria-expanded="false">Show</button></div>' +
+        '<div class="panel-body" id="obsBody" hidden>' +
+          (observations.length
+            ? '<div class="table-wrap" style="margin-bottom:12px"><table class="tbl"><thead><tr>' +
+                '<th>Kind</th><th>Label</th><th>Value</th><th>Detail</th></tr></thead><tbody>' +
+                observations.map(function (o) {
+                  const value = typeof o.value === 'object' && o.value !== null ? JSON.stringify(o.value) : String(o.value === null || o.value === undefined ? '' : o.value);
+                  return '<tr><td><span class="chip chip-plain">' + esc(o.kind || '—') + '</span></td>' +
+                    '<td class="mono-cell">' + esc(o.label || '—') + '</td>' +
+                    '<td class="mono-cell" style="max-width:320px;word-break:break-word">' + esc(value) + '</td>' +
+                    '<td class="tiny dim">' + esc(o.detail || '') + '</td></tr>';
+                }).join('') + '</tbody></table></div>' +
+              '<h4 class="lbl" style="margin-bottom:6px">Raw JSON</h4><pre class="code">' + esc(obsJson) + '</pre>'
+            : '<div class="val dim">No observations recorded.</div>') +
+        '</div>' +
+      '</div>' +
+
+      (Object.keys(authorization).length
+        ? '<div class="panel"><div class="panel-head"><h2>Authorization record</h2></div>' +
+            '<div class="panel-body"><pre class="code">' + esc(JSON.stringify(authorization, null, 2)) + '</pre></div></div>'
+        : '');
+
+    /* expandable drawers */
+    view.querySelectorAll('tr[data-finding-row]').forEach(function (row) {
+      const open = function () {
+        const id = row.getAttribute('data-finding-row');
+        const drawer = view.querySelector('tr[data-drawer="' + CSS.escape(id) + '"]');
+        if (!drawer) return;
+        const showing = !drawer.hasAttribute('hidden');
+        drawer.toggleAttribute('hidden', showing);
+        row.setAttribute('aria-expanded', String(!showing));
+      };
+      row.addEventListener('click', open);
+      row.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); }
+      });
+    });
+
+    view.querySelectorAll('[data-copy-finding]').forEach(function (btn) {
+      btn.addEventListener('click', function (event) {
+        event.stopPropagation();
+        const id = btn.getAttribute('data-copy-finding');
+        const found = findings.filter(function (f, idx) { return String(f.id || idx) === id; })[0];
+        copyText(JSON.stringify(found || {}, null, 2), 'Finding JSON');
+      });
+    });
+
+    const obsToggle = el('obsToggle');
+    const obsBody = el('obsBody');
+    if (obsToggle && obsBody) {
+      obsToggle.addEventListener('click', function () {
+        const showing = !obsBody.hasAttribute('hidden');
+        obsBody.toggleAttribute('hidden', showing);
+        obsToggle.setAttribute('aria-expanded', String(!showing));
+        obsToggle.textContent = showing ? 'Show' : 'Hide';
+      });
+    }
+
+    view.querySelectorAll('[data-report]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const fmt = btn.getAttribute('data-report');
+        const blank = window.open('', '_blank');
+        if (blank) { try { blank.document.write('<title>IRNXSEC report</title><p style="font-family:monospace">Preparing report…</p>'); } catch (e) {} }
+        openAuthedFile('/api/scans/' + encodeURIComponent(scanId) + '/report?format=' + encodeURIComponent(fmt),
+          'irnxsec-' + scanId + '.' + fmt, blank);
+      });
+    });
+
+    const del = el('deleteScan');
+    if (del) {
+      del.addEventListener('click', async function () {
+        const yes = await confirmDialog({
+          title: 'Delete scan',
+          html: 'Permanently delete scan <b>' + esc(scanId) + '</b> for <b>' + esc(scan.target || '') + '</b>? ' +
+            'The stored result and generated reports are removed. This cannot be undone.',
+          confirmLabel: 'Delete scan',
+          danger: true
+        });
+        if (!yes) return;
+        try {
+          await api('/api/scans/' + encodeURIComponent(scanId), { method: 'DELETE' });
+          toast('Scan deleted', 'ok');
+          go('#/history');
+        } catch (err) {
+          if (err.name !== 'ApiError') toast('Delete failed', 'error');
+        }
+      });
+    }
+  }
+};
+
+/* ============================================================ screen: scopes */
+function scopeTargetChips(sc) {
+  if (!sc.length) return '<span class="dim tiny">no targets</span>';
+  return '<div style="display:flex;gap:4px;flex-wrap:wrap;max-width:320px">' + sc.map(function (t) {
+    return '<span class="chip chip-target">' + esc(t) + '</span>';
+  }).join('') + '</div>';
+}
+
+function scopeTable(scopes) {
+  if (!scopes.length) {
+    return emptyState('No scopes yet — register an engagement first',
+      'A scope is the written authorization record that unlocks public targets. Without one, only loopback and private lab ranges can be scanned.',
+      '<button class="btn btn-primary btn-sm" type="button" id="emptyNewScope">Register first scope</button>');
+  }
+  return '<div class="table-wrap"><table class="tbl"><thead><tr>' +
+    '<th>ID</th><th>Name / org</th><th>Kinds</th><th>Targets</th><th>Basis</th><th>Created</th><th>Expires</th><th>Status</th><th style="text-align:right">Actions</th>' +
+    '</tr></thead><tbody>' +
+    scopes.map(function (s) {
+      const usable = !!s.usable;
+      return '<tr data-scope-row="' + esc(s.id) + '">' +
+        '<td class="mono-cell nowrap" style="color:#dfeaf2">' + esc(s.id) + '</td>' +
+        '<td><div style="color:#e3edf5">' + esc(s.name || '—') + '</div>' +
+          '<div class="tiny dim">' + esc(s.organization || 'no organization') + '</div></td>' +
+        '<td><span class="chip chip-plain">' + esc(KIND_LABEL[s.kind] || s.kind || '—') + '</span></td>' +
+        '<td>' + scopeTargetChips(Array.isArray(s.targets) ? s.targets : []) + '</td>' +
+        '<td><span class="chip chip-plain">' + esc(AUTHZ_LABEL[s.authorization] || s.authorization || '—') + '</span>' +
+          (s.reference ? '<div class="tiny dim mono" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(s.reference) + '">' + esc(s.reference) + '</div>' : '') +
+        '</td>' +
+        '<td class="mono tiny dim nowrap">' + esc(fmtDay(s.created_at)) + '</td>' +
+        '<td class="nowrap"><div class="mono tiny" style="color:#b9c6d2">' + esc(s.expires_at ? fmtDay(s.expires_at) : 'no expiry') + '</div>' +
+          '<div class="tiny dim">' + esc(countdownText(s.expires_at)) + '</div></td>' +
+        '<td>' + scopeBadge(s) + '</td>' +
+        '<td style="text-align:right;white-space:nowrap">' +
+          '<div class="btn-row" style="justify-content:flex-end">' +
+            '<button class="btn btn-sm" type="button" data-scope-cert="' + esc(s.id) + '"' + (usable ? '' : ' disabled title="Scope must be active and unexpired"') + '>Issue certificate</button>' +
+            (String(s.status) === 'active'
+              ? '<button class="btn btn-sm btn-danger" type="button" data-scope-revoke="' + esc(s.id) + '">Revoke</button>'
+              : '<button class="btn btn-sm" type="button" disabled>Revoked</button>') +
+            '<button class="btn btn-sm btn-ghost" type="button" data-scope-delete="' + esc(s.id) + '" title="Delete scope">' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9.5 7V5.5h5V7M7 7l.8 12h8.4L17 7"/></svg></button>' +
+          '</div>' +
+        '</td>' +
+        '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+}
+
+function newScopeModal(onCreated) {
+  const kinds = [['all', 'All kinds'], ['web', 'Web'], ['network', 'Network'], ['dns', 'DNS']];
+  const bases = [
+    ['owner', 'Owner / self-owned'],
+    ['written-permission', 'Written permission'],
+    ['contract', 'Signed contract'],
+    ['bug-bounty-program', 'Bug bounty program']
+  ];
+  const html =
+    '<div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="nsTitle">' +
+      '<div class="modal-head"><h3 id="nsTitle">Register authorization scope</h3>' +
+        '<button class="x" type="button" data-close aria-label="Close">×</button></div>' +
+      '<form id="scopeForm"><div class="modal-body" style="display:grid;gap:14px">' +
+        '<div class="alert alert-accent" style="font-size:12px">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.3-2.9 7.6-7 9.5-4.1-1.9-7-5.2-7-9.5V6z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg>' +
+          '<div>This record is your authorization evidence. Be accurate — a certificate issued from a false scope is worthless.</div></div>' +
+
+        '<div class="field-row">' +
+          '<div class="field"><label for="nsName">Engagement name</label>' +
+            '<input class="input" id="nsName" name="name" required maxlength="120" placeholder="Acme Q4 external assessment" data-autofocus></div>' +
+          '<div class="field"><label for="nsOrg">Organization</label>' +
+            '<input class="input" id="nsOrg" name="organization" maxlength="120" placeholder="PT Acme Indonesia"></div>' +
+        '</div>' +
+
+        '<div class="field-row">' +
+          '<div class="field"><label for="nsContact">Contact email</label>' +
+            '<input class="input" id="nsContact" name="contact" type="email" maxlength="160" placeholder="security@example.com"></div>' +
+          '<div class="field"><label for="nsKind">Scope kind</label>' +
+            '<select class="select" id="nsKind" name="kind">' +
+              kinds.map(function (k) { return '<option value="' + esc(k[0]) + '">' + esc(k[1]) + '</option>'; }).join('') +
+            '</select></div>' +
+        '</div>' +
+
+        '<div class="field"><label for="nsTargets">Targets — one per line</label>' +
+          '<textarea class="textarea" id="nsTargets" name="targets" required spellcheck="false" ' +
+            'placeholder="app.example.com&#10;*.example.com&#10;10.0.0.0/24&#10;https://staging.example.com"></textarea>' +
+          '<div class="hint">Accept the exact host (<span class="mono">app.example.com</span>), a wildcard (<span class="mono">*.example.com</span>), a CIDR range (<span class="mono">10.0.0.0/24</span>) or a full URL (<span class="mono">https://app.example.com</span>).</div></div>' +
+
+        '<div class="field-row">' +
+          '<div class="field"><label for="nsAuth">Authorization basis</label>' +
+            '<select class="select" id="nsAuth" name="authorization">' +
+              bases.map(function (b) { return '<option value="' + esc(b[0]) + '">' + esc(b[1]) + '</option>'; }).join('') +
+            '</select></div>' +
+          '<div class="field"><label for="nsExpiry">Expires</label>' +
+            '<input class="input" id="nsExpiry" name="expires_at" type="date">' +
+            '<div class="hint">Leave empty for no expiry. Expired scopes are refused automatically.</div></div>' +
+        '</div>' +
+
+        '<div class="field"><label for="nsRef">Reference — contract or program URL</label>' +
+          '<input class="input" id="nsRef" name="reference" maxlength="300" placeholder="https://hackerone.com/acme  ·  CTR-2026-0142"></div>' +
+
+        '<div class="field"><label for="nsNotes">Notes</label>' +
+          '<textarea class="textarea" id="nsNotes" name="notes" style="min-height:64px" maxlength="2000" placeholder="Rules of engagement, excluded hosts, testing windows…"></textarea></div>' +
+
+        '<div id="nsError" hidden></div>' +
+      '</div>' +
+      '<div class="modal-foot">' +
+        '<button class="btn" type="button" data-close>Cancel</button>' +
+        '<button class="btn btn-primary" type="submit" id="nsSubmit">Create scope</button>' +
+      '</div></form>' +
+    '</div>';
+
+  openModal(html, {
+    onMount: function (root) {
+      const form = root.querySelector('#scopeForm');
+      const errBox = root.querySelector('#nsError');
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        errBox.hidden = true;
+        const fd = new FormData(form);
+        const targets = String(fd.get('targets') || '')
+          .split('\n')
+          .map(function (t) { return t.trim(); })
+          .filter(function (t) { return t.length > 0; });
+        if (!targets.length) {
+          errBox.hidden = false;
+          errBox.innerHTML = '<div class="alert alert-danger"><div>Add at least one target.</div></div>';
+          return;
+        }
+        const btn = root.querySelector('#nsSubmit');
+        btn.disabled = true;
+        btn.innerHTML = spinnerSvg() + 'Creating…';
+        try {
+          const body = {
+            name: String(fd.get('name') || '').trim(),
+            organization: String(fd.get('organization') || '').trim(),
+            contact: String(fd.get('contact') || '').trim(),
+            authorization: String(fd.get('authorization') || 'owner'),
+            reference: String(fd.get('reference') || '').trim(),
+            notes: String(fd.get('notes') || '').trim(),
+            kind: String(fd.get('kind') || 'all'),
+            targets: targets,
+            expires_at: String(fd.get('expires_at') || '')
+          };
+          const res = await api('/api/scopes', { method: 'POST', body: body });
+          closeModal();
+          toast('Scope ' + ((res && res.scope && res.scope.id) || '') + ' registered', 'ok');
+          if (typeof onCreated === 'function') onCreated(res && res.scope);
+        } catch (err) {
+          errBox.hidden = false;
+          errBox.innerHTML = '<div class="alert alert-danger"><div class="alert-mono">' + esc(err.message || 'Could not create scope') + '</div></div>';
+          btn.disabled = false;
+          btn.textContent = 'Create scope';
+        }
+      });
+    }
+  });
+}
+
+ROUTES.scopes = {
+  title: 'Scopes & Authorization',
+  sub: 'Registri izin engagement',
+  render: async function (view, args, alive) {
+    const data = await api('/api/scopes');
+    if (!alive()) return;
+    const scopes = (data && Array.isArray(data.scopes)) ? data.scopes : [];
+    const usable = scopes.filter(function (s) { return s.usable; }).length;
+
+    view.innerHTML =
+      '<div class="alert alert-accent" style="margin-bottom:16px">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.3-2.9 7.6-7 9.5-4.1-1.9-7-5.2-7-9.5V6z"/><path d="M9.2 12.2l2 2 3.6-4"/></svg>' +
+        '<div><b>Authorization registry.</b> Every public-target scan is matched against these records before the first packet is sent. ' +
+        'Revoking or letting a scope expire blocks new scans immediately; certificates can only be issued for active scopes.</div>' +
+      '</div>' +
+
+      '<div class="panel">' +
+        '<div class="panel-head"><h2>Scopes</h2>' +
+          '<span class="chip chip-plain">' + esc(scopes.length) + ' total</span>' +
+          '<span class="chip chip-ok">' + esc(usable) + ' usable</span>' +
+          '<div class="spacer"></div>' +
+          '<button class="btn btn-primary btn-sm" type="button" id="newScope">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg>New scope</button>' +
+        '</div>' +
+        scopeTable(scopes) +
+      '</div>';
+
+    const openNew = function () { newScopeModal(function () { router(); }); };
+    const newBtn = el('newScope');
+    if (newBtn) newBtn.addEventListener('click', openNew);
+    const emptyBtn = el('emptyNewScope');
+    if (emptyBtn) emptyBtn.addEventListener('click', openNew);
+
+    view.querySelectorAll('[data-scope-cert]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const id = btn.getAttribute('data-scope-cert');
+        btn.disabled = true;
+        btn.innerHTML = spinnerSvg() + 'Signing…';
+        try {
+          const res = await api('/api/scopes/' + encodeURIComponent(id) + '/certificate', { method: 'POST' });
+          const cert = res && res.certificate;
+          const certId = cert && cert.certificate_id;
+          toast('Certificate ' + (certId || '') + ' issued', 'ok');
+          if (certId) {
+            const yes = await confirmDialog({
+              title: 'Certificate issued',
+              html: 'Ed25519 certificate <b>' + esc(certId) + '</b> is signed and stored locally.<br><br>Download the PDF now?',
+              confirmLabel: 'Download PDF'
+            });
+            if (yes) {
+              openAuthedFile('/api/certificates/' + encodeURIComponent(certId) + '/pdf', certId + '.pdf', window.open('', '_blank'));
+            }
+          }
+        } catch (err) {
+          if (err.name !== 'ApiError') toast('Certificate issuance failed', 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Issue certificate';
+        }
+      });
+    });
+
+    view.querySelectorAll('[data-scope-revoke]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const id = btn.getAttribute('data-scope-revoke');
+        const yes = await confirmDialog({
+          title: 'Revoke scope',
+          html: 'Revoke <b>' + esc(id) + '</b>? Existing certificates for this engagement stop verifying and new scans matching it will be refused.',
+          confirmLabel: 'Revoke scope',
+          danger: true
+        });
+        if (!yes) return;
+        try {
+          await api('/api/scopes/' + encodeURIComponent(id) + '/revoke', { method: 'POST' });
+          toast('Scope revoked', 'ok');
+          router();
+        } catch (err) {
+          if (err.name !== 'ApiError') toast('Revoke failed', 'error');
+        }
+      });
+    });
+
+    view.querySelectorAll('[data-scope-delete]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const id = btn.getAttribute('data-scope-delete');
+        const yes = await confirmDialog({
+          title: 'Delete scope',
+          html: 'Permanently delete scope <b>' + esc(id) + '</b>? The authorization record is removed from the registry. Scans already completed keep their stored results.',
+          confirmLabel: 'Delete scope',
+          danger: true
+        });
+        if (!yes) return;
+        try {
+          await api('/api/scopes/' + encodeURIComponent(id), { method: 'DELETE' });
+          toast('Scope deleted', 'ok');
+          router();
+        } catch (err) {
+          if (err.name !== 'ApiError') toast('Delete failed', 'error');
+        }
+      });
+    });
+  }
+};
+
+/* ============================================================ screen: certificates */
+ROUTES.certificates = {
+  title: 'Certificates',
+  sub: 'Bukti engagement tertandatangan',
+  render: async function (view, args, alive) {
+    const data = await api('/api/certificates');
+    if (!alive()) return;
+    const certs = (data && Array.isArray(data.certificates)) ? data.certificates : [];
+
+    const cards = certs.length
+      ? '<div class="grid grid-2">' + certs.map(function (c) {
+          const targets = Array.isArray(c.targets) ? c.targets : [];
+          const until = String(c.valid_until || '');
+          const left = /^\d{4}-\d{2}-\d{2}/.test(until) ? daysLeft(until) : null;
+          const tone = left === null ? 'chip-plain' : (left < 0 ? 'chip-bad' : (left <= 14 ? 'chip-warn' : 'chip-ok'));
+          return '<div class="cert-card">' +
+            '<div style="display:flex;align-items:flex-start;gap:10px">' +
+              '<div style="min-width:0;flex:1">' +
+                '<div class="cert-id">' + esc(c.certificate_id || '—') + '</div>' +
+                '<div class="tiny dim mono" style="margin-top:2px">scope ' + esc(c.scope_id || '—') + '</div>' +
+              '</div>' +
+              '<span class="chip chip-accent">Ed25519</span>' +
+            '</div>' +
+            '<div class="cert-kv">' +
+              '<div><div class="k">Engagement</div><div class="v">' + esc(c.engagement || '—') + '</div></div>' +
+              '<div><div class="k">Issued</div><div class="v">' + esc(fmtDay(c.issued_at)) + '</div></div>' +
+              '<div><div class="k">Valid until</div><div class="v">' + esc(until || 'until revoked') + '</div></div>' +
+              '<div><div class="k">Targets</div><div class="v">' + esc(targets.length) + '</div></div>' +
+            '</div>' +
+            '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
+              targets.slice(0, 4).map(function (t) { return '<span class="chip chip-target">' + esc(t) + '</span>'; }).join('') +
+              (targets.length > 4 ? '<span class="chip chip-tiny chip-plain">+' + (targets.length - 4) + '</span>' : '') +
+            '</div>' +
+            '<div class="btn-row" style="margin-top:2px">' +
+              '<button class="btn btn-sm" type="button" data-cert-pdf="' + esc(c.certificate_id) + '">' +
+                '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5v10M8 11l4 4 4-4"/><path d="M5 18.5h14"/></svg>Download PDF</button>' +
+              '<span class="chip ' + tone + '">' + esc(countdownText(until)) + '</span>' +
+              '<button class="btn btn-sm btn-ghost copy-btn" type="button" data-cert-copy="' + esc(c.certificate_id) + '">Copy ID</button>' +
+            '</div>' +
+          '</div>';
+        }).join('') + '</div>'
+      : '<div class="panel"><div class="panel-body">' + emptyState('No certificates issued',
+          'Open a scope and issue a certificate to produce signed proof of engagement.',
+          '<a class="btn btn-sm" href="#/scopes">Go to scopes</a>') + '</div></div>';
+
+    view.innerHTML =
+      '<div class="panel">' +
+        '<div class="panel-head"><h2>Signed engagement certificates</h2>' +
+          '<span class="chip chip-plain">' + esc(certs.length) + '</span>' +
+          '<div class="spacer"></div><a class="btn btn-sm" href="#/settings">Verify key</a></div>' +
+        '<div class="panel-body">' +
+          '<div class="alert" style="font-size:12px">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v4.4M12 15.6v.1"/></svg>' +
+            '<div>Certificates are <b>Ed25519-signed</b> proof of engagement scope, generated locally and never uploaded anywhere. ' +
+            'Each certificate signs the engagement name, target list, authorization basis and validity window. ' +
+            'Verify a signature with the public key shown in <a href="#/settings">Settings</a>.</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-top:16px">' + cards + '</div>';
+
+    view.querySelectorAll('[data-cert-pdf]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = btn.getAttribute('data-cert-pdf');
+        const blank = window.open('', '_blank');
+        openAuthedFile('/api/certificates/' + encodeURIComponent(id) + '/pdf', id + '.pdf', blank);
+      });
+    });
+    view.querySelectorAll('[data-cert-copy]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        copyText(btn.getAttribute('data-cert-copy'), 'Certificate ID');
+      });
+    });
+  }
+};
+
+/* ============================================================ screen: history */
+ROUTES.history = {
+  title: 'History',
+  sub: 'Arsip scan',
+  render: async function (view, args, alive) {
+    const data = await api('/api/scans?limit=200');
+    if (!alive()) return;
+    const all = (data && Array.isArray(data.scans)) ? data.scans : [];
+
+    const state = { q: '', kind: '', status: '', sort: 'date', dir: 'desc', page: 1, per: 25 };
+
+    view.innerHTML =
+      '<div class="panel">' +
+        '<div class="panel-head">' +
+          '<h2>Scans</h2><span class="chip chip-plain" id="histCount">' + esc(all.length) + '</span>' +
+          '<div class="spacer"></div>' +
+          '<div class="toolbar" style="flex:1;max-width:640px">' +
+            '<div class="search">' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>' +
+              '<input class="input" id="histSearch" type="search" placeholder="Search target or scan id  (press / )" autocomplete="off" aria-label="Search scans">' +
+            '</div>' +
+            '<select class="select" id="histKind" aria-label="Filter by kind" style="max-width:150px">' +
+              '<option value="">All kinds</option><option value="web">Web</option>' +
+              '<option value="network">Network</option><option value="dns">DNS</option>' +
+            '</select>' +
+            '<select class="select" id="histStatus" aria-label="Filter by status" style="max-width:160px">' +
+              '<option value="">All status</option><option value="complete">Complete</option>' +
+              '<option value="running">Running</option><option value="queued">Queued</option><option value="failed">Failed</option>' +
+            '</select>' +
+          '</div>' +
+        '</div>' +
+        '<div id="histBody"></div>' +
+        '<div class="pager" id="histPager"></div>' +
+      '</div>';
+
+    const body = el('histBody');
+    const pager = el('histPager');
+
+    function filtered() {
+      const q = state.q.trim().toLowerCase();
+      const rows = all.filter(function (s) {
+        if (state.kind && String(s.kind) !== state.kind) return false;
+        if (state.status && String(s.status || '').toLowerCase() !== state.status) return false;
+        if (q) {
+          const hay = ((s.target || '') + ' ' + (s.id || '') + ' ' + (s.profile || '') + ' ' + (s.scope_id || '')).toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+      const sign = state.dir === 'asc' ? 1 : -1;
+      rows.sort(function (a, b) {
+        if (state.sort === 'risk') return (num(a.risk_score) - num(b.risk_score)) * sign;
+        const ta = parseTs(a.started_at), tb = parseTs(b.started_at);
+        const va = ta ? ta.getTime() : 0, vb = tb ? tb.getTime() : 0;
+        return (va - vb) * sign;
+      });
+      return rows;
+    }
+
+    function caret(key) {
+      if (state.sort !== key) return '';
+      return '<span class="caret">' + (state.dir === 'asc' ? '▲' : '▼') + '</span>';
+    }
+
+    function paint() {
+      const rows = filtered();
+      const pages = Math.max(1, Math.ceil(rows.length / state.per));
+      if (state.page > pages) state.page = pages;
+      const start = (state.page - 1) * state.per;
+      const slice = rows.slice(start, start + state.per);
+      const countNode = el('histCount');
+      if (countNode) countNode.textContent = String(rows.length);
+
+      if (!all.length) {
+        body.innerHTML = emptyState('No scans recorded yet', 'Run your first authorized assessment to build the archive.',
+          '<a class="btn btn-primary btn-sm" href="#/new">New scan</a>');
+        pager.innerHTML = '';
+        return;
+      }
+      if (!rows.length) {
+        body.innerHTML = emptyState('No matches', 'No scan matches the current filters. Clear the search to see everything.',
+          '<button class="btn btn-sm" type="button" id="histClear">Clear filters</button>');
+        const clear = el('histClear');
+        if (clear) clear.addEventListener('click', function () {
+          state.q = ''; state.kind = ''; state.status = ''; state.page = 1;
+          el('histSearch').value = ''; el('histKind').value = ''; el('histStatus').value = '';
+          paint();
+        });
+        pager.innerHTML = '';
+        return;
+      }
+
+      body.innerHTML = '<div class="table-wrap"><table class="tbl"><thead><tr>' +
+        '<th>Target</th><th>ID</th><th>Kind</th><th>Profile</th><th>Scope</th>' +
+        '<th class="sortable" data-sort="risk">Risk' + caret('risk') + '</th>' +
+        '<th>Status</th>' +
+        '<th class="sortable" data-sort="date">Started' + caret('date') + '</th>' +
+        '<th style="text-align:right">Open</th></tr></thead><tbody>' +
+        slice.map(function (s) {
+          return '<tr class="clickable" data-scan="' + esc(s.id) + '" tabindex="0">' +
+            '<td><span class="mono" style="font-size:11.5px;color:#e2ecf3">' + esc(s.target || '—') + '</span></td>' +
+            '<td class="mono tiny dim nowrap">' + esc(s.id || '') + '</td>' +
+            '<td>' + kindChip(s.kind) + '</td>' +
+            '<td class="mono tiny muted">' + esc(s.profile || '—') + '</td>' +
+            '<td class="mono tiny dim">' + esc(s.scope_id || '—') + '</td>' +
+            '<td class="num">' + riskCell(s.risk_score) + '</td>' +
+            '<td>' + statusChip(s.status) + '</td>' +
+            '<td class="mono tiny dim nowrap" title="' + esc(fmtDate(s.started_at)) + '">' + esc(relTime(s.started_at)) + '</td>' +
+            '<td class="num"><span class="dim mono">›</span></td>' +
+            '</tr>';
+        }).join('') + '</tbody></table></div>';
+
+      bindScanRows(body);
+      body.querySelectorAll('th.sortable').forEach(function (th) {
+        th.addEventListener('click', function () {
+          const key = th.getAttribute('data-sort');
+          if (state.sort === key) state.dir = state.dir === 'asc' ? 'desc' : 'asc';
+          else { state.sort = key; state.dir = 'desc'; }
+          paint();
+        });
+      });
+
+      const from = start + 1, to = Math.min(rows.length, start + state.per);
+      pager.innerHTML = '<span class="pg-info">' + from + '–' + to + ' of ' + rows.length + ' · client-side</span>' +
+        '<button class="btn btn-sm" type="button" data-pg="prev"' + (state.page <= 1 ? ' disabled' : '') + '>Prev</button>' +
+        '<span class="mono tiny muted">page ' + state.page + ' / ' + pages + '</span>' +
+        '<button class="btn btn-sm" type="button" data-pg="next"' + (state.page >= pages ? ' disabled' : '') + '>Next</button>';
+      pager.querySelectorAll('[data-pg]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (btn.getAttribute('data-pg') === 'prev' && state.page > 1) state.page -= 1;
+          if (btn.getAttribute('data-pg') === 'next' && state.page < pages) state.page += 1;
+          paint();
+        });
+      });
+    }
+
+    const search = el('histSearch');
+    let searchTimer = 0;
+    search.addEventListener('input', function () {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function () {
+        state.q = search.value || '';
+        state.page = 1;
+        paint();
+      }, 120);
+    });
+    addCleanup(function () { clearTimeout(searchTimer); });
+    el('histKind').addEventListener('change', function (e) { state.kind = e.target.value; state.page = 1; paint(); });
+    el('histStatus').addEventListener('change', function (e) { state.status = e.target.value; state.page = 1; paint(); });
+
+    /* the `/` shortcut targets this input while history is mounted */
+    historySearchFocus = function () { try { search.focus(); search.select(); } catch (err) {} };
+    addCleanup(function () { historySearchFocus = null; });
+
+    paint();
+  }
+};
+
+let historySearchFocus = null;
+
+/* ============================================================ screen: payloads */
+ROUTES.payloads = {
+  title: 'Canaries',
+  sub: 'Penanda validasi non-eksploitasi',
+  render: async function (view, args, alive) {
+    const data = await api('/api/payloads');
+    if (!alive()) return;
+    const canaries = (data && Array.isArray(data.canaries)) ? data.canaries : [];
+    const note = (data && data.note) || '';
+
+    const rows = canaries.length
+      ? '<div class="table-wrap"><table class="tbl"><thead><tr>' +
+          '<th>Canary</th><th>Category</th><th>Purpose</th><th>Rendered</th><th style="text-align:right">Copy</th>' +
+        '</tr></thead><tbody>' +
+        canaries.map(function (c) {
+          const rendered = String(c.render || '');
+          return '<tr>' +
+            '<td><div style="color:#e3edf5">' + esc(c.name || '—') + '</div></td>' +
+            '<td><span class="chip chip-plain">' + esc(c.category || '—') + '</span></td>' +
+            '<td class="tiny muted" style="max-width:360px;line-height:1.5">' + esc(c.purpose || '') + '</td>' +
+            '<td><code class="mono" style="font-size:11px;color:#9fe9cd;background:#06090d;border:1px solid #161d26;border-radius:4px;padding:2px 6px;display:inline-block;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle">' +
+              esc(rendered || '—') + '</code></td>' +
+            '<td class="num"><button class="btn btn-sm" type="button" data-copy-canary="' + esc(c.name || '') + '">' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5.5H6.5A1.5 1.5 0 0 0 5 7v8.5"/></svg>Copy</button></td>' +
+            '</tr>';
+        }).join('') + '</tbody></table></div>'
+      : emptyState('No canaries published', 'The engine did not expose its canary catalogue.');
+
+    view.innerHTML =
+      '<div class="alert alert-warn" style="margin-bottom:16px">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l8 14H4z"/><path d="M12 9.5v4M12 16.2v.1"/></svg>' +
+        '<div><b>These are non-exploiting validation markers, not exploit payloads.</b> ' +
+        'Each canary carries a scan-unique token and proves only whether input handling is safe — encoded, rejected or normalised. ' +
+        'They never extract data and never execute code. Use them for evidence, not for exploitation.</div>' +
+      '</div>' +
+      '<div class="panel">' +
+        '<div class="panel-head"><h2>Canary catalogue</h2>' +
+          '<span class="chip chip-plain">' + esc(canaries.length) + '</span>' +
+          '<div class="spacer"></div><span class="chip chip-accent">read-only</span></div>' +
+        rows +
+        (note ? '<div class="panel-foot"><span class="hint">' + esc(note) + '</span></div>' : '') +
+      '</div>';
+
+    view.querySelectorAll('[data-copy-canary]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const name = btn.getAttribute('data-copy-canary');
+        const found = canaries.filter(function (c) { return String(c.name) === name; })[0];
+        copyText(found ? (found.render || '') : '', 'Canary');
+      });
+    });
+  }
+};
+
+/* ============================================================ screen: audit */
+ROUTES.audit = {
+  title: 'Audit Trail',
+  sub: 'Jejak aktivitas lokal',
+  render: async function (view, args, alive) {
+    const data = await api('/api/audit?limit=200');
+    if (!alive()) return;
+    const entries = (data && Array.isArray(data.audit)) ? data.audit : [];
+
+    view.innerHTML =
+      '<div class="panel">' +
+        '<div class="panel-head"><h2>Audit log</h2>' +
+          '<span class="chip chip-plain">' + esc(entries.length) + '</span>' +
+          '<div class="spacer"></div>' +
+          '<span class="hint">Append-only local record · last 200 events</span></div>' +
+        (entries.length
+          ? '<div class="table-wrap"><table class="tbl"><thead><tr>' +
+              '<th class="nowrap">Timestamp</th><th>Actor</th><th>Action</th><th>Detail</th><th>Scope</th>' +
+            '</tr></thead><tbody>' +
+            entries.map(function (e) {
+              const action = String(e.action || '');
+              const tone = action.indexOf('delete') !== -1 || action.indexOf('revoke') !== -1
+                ? 'chip-bad'
+                : (action.indexOf('certificate') !== -1 ? 'chip-accent' : 'chip-plain');
+              return '<tr>' +
+                '<td class="mono tiny dim nowrap" title="' + esc(fmtDate(e.ts)) + '">' + esc(fmtDate(e.ts)) + '</td>' +
+                '<td class="mono tiny muted">' + esc(e.actor || 'local') + '</td>' +
+                '<td><span class="chip ' + tone + '">' + esc(action || '—') + '</span></td>' +
+                '<td class="tiny muted" style="max-width:480px;word-break:break-word">' + esc(e.detail || '') + '</td>' +
+                '<td class="mono tiny dim">' + esc(e.scope_id || '—') + '</td>' +
+                '</tr>';
+            }).join('') +
+            '</tbody></table></div>'
+          : emptyState('No audit events yet', 'Scope changes, scans and certificate issuance are recorded here automatically.')) +
+      '</div>';
+  }
+};
+
+/* ============================================================ screen: settings */
+const SETTINGS_FIELDS = [
+  { key: 'host', label: 'Bind host', type: 'text', hint: 'Keep 127.0.0.1 for localhost-only operation.' },
+  { key: 'port', label: 'Port', type: 'number', hint: 'Requires a server restart to take effect.' },
+  { key: 'contact', label: 'Contact', type: 'text', hint: 'Sent in the User-Agent so asset owners can identify the tester.' },
+  { key: 'timeout', label: 'Request timeout (s)', type: 'number', step: '0.5', hint: 'Per-request ceiling, clamped server-side.' }
+];
+
+function settingToggle(id, label, desc, checked, danger) {
+  return '<div class="switch' + (danger && !checked ? ' danger-mode' : '') + '" data-switch="' + esc(id) + '">' +
+    '<div class="switch-txt"><b>' + esc(label) + '</b><small>' + esc(desc) + '</small></div>' +
+    '<button class="tgl" type="button" role="switch" aria-checked="' + (checked ? 'true' : 'false') + '" id="' + esc(id) + '" aria-label="' + esc(label) + '"></button>' +
+    '</div>';
+}
+
+ROUTES.settings = {
+  title: 'Settings',
+  sub: 'Konfigurasi runtime',
+  render: async function (view, args, alive) {
+    const data = await api('/api/settings');
+    if (!alive()) return;
+    const s = (data && data.settings) || {};
+    const publicKey = (data && data.public_key) || '';
+    const hint = (data && data.token_hint) || '';
+
+    view.innerHTML =
+      '<form id="settingsForm">' +
+      '<div class="two-col">' +
+
+        '<div class="panel">' +
+          '<div class="panel-head"><h2>Runtime</h2><div class="spacer"></div>' +
+            '<span class="chip chip-plain">settings.json</span></div>' +
+          '<div class="panel-body form-grid">' +
+            '<div class="field-row">' +
+              SETTINGS_FIELDS.map(function (f) {
+                return '<div class="field"><label for="s_' + esc(f.key) + '">' + esc(f.label) + '</label>' +
+                  '<input class="input" id="s_' + esc(f.key) + '" name="' + esc(f.key) + '" type="' + esc(f.type) + '"' +
+                  (f.step ? ' step="' + esc(f.step) + '"' : '') +
+                  ' value="' + esc(s[f.key] !== undefined && s[f.key] !== null ? s[f.key] : '') + '">' +
+                  '<div class="hint">' + esc(f.hint) + '</div></div>';
+              }).join('') +
+            '</div>' +
+
+            '<div class="divider" style="margin:2px 0"></div>' +
+
+            '<div class="field-row">' +
+              '<div class="field"><label for="s_rate_limit">Rate limit (req/s)</label>' +
+                '<input class="input" id="s_rate_limit" name="rate_limit" type="number" step="0.5" min="0.5" value="' + esc(num(s.rate_limit, 4)) + '">' +
+                '<div class="hint">Global throttle for every scan. Keep it polite.</div></div>' +
+              '<div class="field"><label for="s_max_requests">Max requests / scan</label>' +
+                '<input class="input" id="s_max_requests" name="max_requests" type="number" step="1" min="1" value="' + esc(num(s.max_requests, 400)) + '">' +
+                '<div class="hint">Hard budget. The scan stops when it is exhausted.</div></div>' +
+            '</div>' +
+
+            '<div class="field-row">' +
+              '<div class="field"><label for="s_max_hosts">Max hosts / network scan</label>' +
+                '<input class="input" id="s_max_hosts" name="max_hosts" type="number" step="1" min="1" value="' + esc(num(s.max_hosts, 32)) + '">' +
+                '<div class="hint">CIDR ranges larger than this are refused.</div></div>' +
+              '<div class="field"><label for="s_theme">Theme</label>' +
+                '<select class="select" id="s_theme" name="theme">' +
+                  ['neon', 'graphite', 'amber'].map(function (t) {
+                    return '<option value="' + esc(t) + '"' + (String(s.theme) === t ? ' selected' : '') + '>' + esc(t) + '</option>';
+                  }).join('') +
+                '</select><div class="hint">Console accent preset.</div></div>' +
+            '</div>' +
+
+            '<div class="divider" style="margin:2px 0"></div>' +
+
+            settingToggle('sw_verify_tls', 'Verify TLS certificates',
+              'Disable only for a lab target with a self-signed certificate.', s.verify_tls !== false, false) +
+            settingToggle('sw_require_authz', 'Require authorization scope',
+              'Refuse public targets that do not match an active scope record.', s.require_authz !== false, true) +
+            '<div id="authzWarn" hidden class="alert alert-danger">' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5l8 14H4z"/><path d="M12 9.5v4M12 16.2v.1"/></svg>' +
+              '<div><b>Authorization enforcement is off.</b> Any reachable host can be scanned without a scope record. This removes the guard that keeps the toolkit lawful — re-enable it unless you are in an isolated lab.</div>' +
+            '</div>' +
+
+            '<div id="settingsError" hidden></div>' +
+
+            '<div class="btn-row">' +
+              '<button class="btn btn-primary" type="submit" id="saveSettings">Save settings</button>' +
+              '<button class="btn" type="reset">Revert</button>' +
+              '<span class="hint" style="margin-left:auto">Saved to the local settings file only</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div>' +
+          '<div class="panel">' +
+            '<div class="panel-head"><h2>API token</h2><div class="spacer"></div>' +
+              '<span class="chip chip-accent">required</span></div>' +
+            '<div class="panel-body" style="display:grid;gap:10px">' +
+              '<div class="field"><span class="lbl">Token (masked)</span>' +
+                '<div style="display:flex;gap:6px;align-items:center">' +
+                  '<code class="mono" id="tokenValue" data-revealed="0" style="flex:1;font-size:11.5px;color:#9fe9cd;background:#06090d;border:1px solid #161d26;border-radius:8px;padding:8px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+                    esc(hint || '••••••••') + '</code>' +
+                  '<button class="btn btn-sm" type="button" id="revealToken" aria-pressed="false">Reveal</button>' +
+                  '<button class="btn btn-sm" type="button" id="copyToken" title="Copy token">' +
+                    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5.5H6.5A1.5 1.5 0 0 0 5 7v8.5"/></svg></button>' +
+                '</div>' +
+                '<div class="hint">Every dashboard request carries this token in the <span class="mono">X-IRNX-Token</span> header. It never leaves localhost.</div>' +
+              '</div>' +
+              '<div class="alert" style="font-size:11.5px">' +
+                '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v4.4M12 15.6v.1"/></svg>' +
+                '<div>The full token is injected into this page at render time and is not returned by the API. Copy it from <span class="mono">settings.json</span> if you need it for scripts.</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="panel">' +
+            '<div class="panel-head"><h2>Certificate public key</h2><div class="spacer"></div>' +
+              '<button class="btn btn-sm" type="button" id="copyPub">Copy</button></div>' +
+            '<div class="panel-body">' +
+              '<pre class="code pem" id="pubKey">' + esc(publicKey || 'No key generated yet — issue a certificate to create the Ed25519 key pair.') + '</pre>' +
+              '<div class="hint" style="margin-top:8px">Ed25519 public key used to verify engagement certificates. ' +
+              'Verify offline with <span class="mono">openssl pkeyutl -verify -pubin -inkey pub.pem -rawin -in payload.bin -sigfile sig.bin</span>.</div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="panel">' +
+            '<div class="panel-head"><h2>Exposure</h2></div>' +
+            '<div class="panel-body" style="display:grid;gap:8px">' +
+              '<div class="kv-inline"><span>bind <b>' + esc(s.host || '127.0.0.1') + ':' + esc(s.port || 8787) + '</b></span></div>' +
+              '<div class="hint">The server binds loopback only. Do not expose this port to a network interface — the token is the only access control.</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '</form>';
+
+    const form = el('settingsForm');
+    const errBox = el('settingsError');
+    const authzWarn = el('authzWarn');
+    const authzSwitch = el('sw_require_authz');
+
+    function syncAuthzWarn() {
+      const on = authzSwitch && authzSwitch.getAttribute('aria-checked') === 'true';
+      if (authzWarn) authzWarn.hidden = on;
+      const wrap = authzSwitch && authzSwitch.closest('.switch');
+      if (wrap) wrap.classList.toggle('danger-mode', !on);
+    }
+
+    view.querySelectorAll('.tgl').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const next = btn.getAttribute('aria-checked') !== 'true';
+        btn.setAttribute('aria-checked', String(next));
+        if (btn.id === 'sw_require_authz') syncAuthzWarn();
+      });
+    });
+    syncAuthzWarn();
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      errBox.hidden = true;
+      const fd = new FormData(form);
+      const body = {
+        host: String(fd.get('host') || '').trim(),
+        port: Number(fd.get('port')) || 8787,
+        contact: String(fd.get('contact') || '').trim(),
+        timeout: Number(fd.get('timeout')) || 8,
+        verify_tls: el('sw_verify_tls').getAttribute('aria-checked') === 'true',
+        rate_limit: Number(fd.get('rate_limit')) || 4,
+        max_requests: Number(fd.get('max_requests')) || 400,
+        max_hosts: Number(fd.get('max_hosts')) || 32,
+        require_authz: authzSwitch.getAttribute('aria-checked') === 'true',
+        theme: String(fd.get('theme') || 'neon')
+      };
+      const save = el('saveSettings');
+      save.disabled = true;
+      save.innerHTML = spinnerSvg() + 'Saving…';
+      try {
+        const res = await api('/api/settings', { method: 'POST', body: body });
+        if (!alive()) return;
+        const saved = (res && res.settings) || body;
+        if (saved.host) setBindChip(saved.host);
+        toast('Settings saved', 'ok');
+        if (saved.require_authz === false) {
+          toast('Warning: authorization enforcement is disabled', 'warn');
+        }
+      } catch (err) {
+        if (!alive()) return;
+        errBox.hidden = false;
+        errBox.innerHTML = '<div class="alert alert-danger"><div class="alert-mono">' + esc(err.message || 'Could not save settings') + '</div></div>';
+      } finally {
+        if (save) { save.disabled = false; save.textContent = 'Save settings'; }
+      }
+    });
+
+    /* token reveal uses the injected value, never a server echo */
+    const revealBtn = el('revealToken');
+    const tokenNode = el('tokenValue');
+    if (revealBtn && tokenNode) {
+      revealBtn.addEventListener('click', function () {
+        const shown = tokenNode.getAttribute('data-revealed') === '1';
+        if (shown) {
+          tokenNode.textContent = hint || '••••••••';
+          tokenNode.setAttribute('data-revealed', '0');
+          revealBtn.textContent = 'Reveal';
+          revealBtn.setAttribute('aria-pressed', 'false');
+        } else {
+          tokenNode.textContent = TOKEN || 'token unavailable';
+          tokenNode.setAttribute('data-revealed', '1');
+          revealBtn.textContent = 'Hide';
+          revealBtn.setAttribute('aria-pressed', 'true');
+        }
+      });
+    }
+    const copyToken = el('copyToken');
+    if (copyToken) copyToken.addEventListener('click', function () { copyText(TOKEN, 'API token'); });
+    const copyPub = el('copyPub');
+    if (copyPub) copyPub.addEventListener('click', function () { copyText(publicKey, 'Public key'); });
+  }
+};
+
+/* ============================================================ boot */
+function startClock() {
+  const node = el('clock');
+  if (!node) return;
+  const tick = function () {
+    const d = new Date();
+    node.textContent = pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+  };
+  tick();
+  const timer = setInterval(tick, 1000);
+  addCleanup(function () { clearInterval(timer); });
+}
+
+async function probeHealth() {
+  const dot = el('tokenDot');
+  const text = el('tokenState');
+  try {
+    const res = await fetch('/api/health', { headers: { 'X-IRNX-Token': TOKEN }, cache: 'no-store' });
+    if (res.status === 401) {
+      showAuthBanner();
+      if (dot) dot.className = 'state-dot bad';
+      if (text) text.textContent = 'token rejected';
+      return;
+    }
+    if (!res.ok) {
+      if (dot) dot.className = 'state-dot warn';
+      if (text) text.textContent = 'api ' + res.status;
+      return;
+    }
+    const data = await res.json();
+    if (dot) dot.className = 'state-dot ok';
+    if (text) text.textContent = 'token ok';
+    if (data && data.app) {
+      document.documentElement.setAttribute('data-app', String(data.app));
+    }
+  } catch (err) {
+    if (dot) dot.className = 'state-dot bad';
+    if (text) text.textContent = 'api offline';
+    toast('Local API unreachable; is the server running?', 'error');
+  }
+}
+
+function globalKeys(event) {
+  const tag = (event.target && event.target.tagName || '').toLowerCase();
+  const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || (event.target && event.target.isContentEditable);
+  if (event.key === 'Escape') {
+    const root = el('modalRoot');
+    if (root && root.innerHTML) { closeModal(); return; }
+  }
+  if (typing || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.key === '/') {
+    if (typeof historySearchFocus === 'function') {
+      event.preventDefault();
+      historySearchFocus();
+    } else {
+      event.preventDefault();
+      go('#/history');
+      setTimeout(function () {
+        if (typeof historySearchFocus === 'function') historySearchFocus();
+      }, 220);
+    }
+    return;
+  }
+  if (event.key === 'n' || event.key === 'N') {
+    event.preventDefault();
+    go('#/new');
+  }
+}
+
+function boot() {
+  document.addEventListener('keydown', globalKeys);
+  window.addEventListener('hashchange', router);
+  startClock();
+  probeHealth();
+  api('/api/settings').then(function (data) {
+    const host = data && data.settings && data.settings.host;
+    if (host) setBindChip(host);
+  }).catch(function () { /* sidebar chip is optional */ });
+  router();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+</script>
+</body>
+</html>

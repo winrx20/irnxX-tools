@@ -1,0 +1,25 @@
+# Byte-compiled
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local runtime data (created by the tool at ~/.irnxsec)
+*.sqlite3
+*.db
+reports/
+certs/
+settings.json
+
+# Build artefacts
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+
+# OS noise
+.DS_Store
+Thumbs.db

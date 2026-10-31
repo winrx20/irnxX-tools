@@ -1,0 +1,9 @@
+fastapi>=0.115,<1.0
+uvicorn>=0.30,<1.0
+requests>=2.31,<3.0
+pydantic>=2.6,<3.0
+
+# Optional extras (install with: pip install 'irnxsec-pro[full]')
+# cryptography>=42      -> signed engagement certificates (Ed25519)
+# dnspython>=2.6        -> DNS / domain engine
+# reportlab>=4.0        -> PDF reports and certificates
