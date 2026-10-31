@@ -338,8 +338,13 @@ def build_parser() -> argparse.ArgumentParser:
             "  irnxsec serve\n"
         ),
     )
+    # ``--json`` must work both before and after the subcommand: SUPPRESS stops the
+    # subparser default from overwriting a value already parsed at the top level.
+    parser.add_argument("--json", action="store_true", default=False, help="machine-readable output")
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--json", action="store_true", help="machine-readable output")
+    common.add_argument(
+        "--json", action="store_true", default=argparse.SUPPRESS, help="machine-readable output"
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     scan = sub.add_parser("scan", parents=[common], help="run an assessment against an authorized target")
@@ -411,6 +416,8 @@ HANDLERS = {
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if not hasattr(args, "json"):
+        args.json = False
     settings = config.load()
     handler = HANDLERS.get(args.command)
     if not handler:

@@ -60,5 +60,40 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/settings", headers=self.headers, json={"timeout": 6}).status_code, 200)
 
 
+class CliContractTests(unittest.TestCase):
+    """``--json`` must work before and after the subcommand, for every command."""
+
+    def _run(self, *argv):
+        import subprocess
+        import sys
+        import os
+
+        env = {**os.environ, "PYTHONPATH": str(__import__("pathlib").Path(__file__).resolve().parents[1])}
+        return subprocess.run(
+            [sys.executable, "-m", "irnxsec.cli", *argv],
+            capture_output=True, text=True, env=env, timeout=120,
+        )
+
+    def test_json_before_subcommand(self):
+        result = self._run("--json", "scope", "list")
+        self.assertEqual(result.returncode, 0, result.stderr[-400:])
+        self.assertIn("scopes", result.stdout)
+
+    def test_json_after_subcommand(self):
+        result = self._run("scope", "list", "--json")
+        self.assertEqual(result.returncode, 0, result.stderr[-400:])
+        self.assertIn("scopes", result.stdout)
+
+    def test_blocked_scan_reports_json_and_exit_3(self):
+        result = self._run("scan", "https://never-authorized-here.org", "--json")
+        self.assertEqual(result.returncode, 3, result.stdout[-400:])
+        self.assertIn("authorization_blocked", result.stdout)
+
+    def test_invalid_target_reports_json_and_exit_2(self):
+        result = self._run("scan", "ftp://nope", "--json")
+        self.assertEqual(result.returncode, 2, result.stdout[-400:])
+        self.assertIn("invalid_input", result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
